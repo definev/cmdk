@@ -195,7 +195,7 @@ flutter run -d macos # or chrome, windows, linux
 
 ## Architecture
 
-The original TypeScript/React codebase is preserved inside `reference/`.
+This library is a Flutter port of the original TypeScript/React [cmdk](https://github.com/dip/cmdk) library by Paco Coursey.
 
 ## Flutter state and lifecycle
 
@@ -324,14 +324,21 @@ import 'package:cmdk/cmdk.dart';
 import 'package:cmdk/material.dart';
 
 CommandInput(
-  editorBuilder: materialCommandInputBuilder,
+  editorBuilder: materialCommandInputBuilder(
+    cursorColor: Colors.deepPurple,
+    cursorWidth: 2.5,
+  ),
   style: const TextStyle(fontSize: 16, color: Color(0xFF111111)),
   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 )
 ```
 
 For a Cupertino application, import `package:cmdk/cupertino.dart` and use
-`cupertinoCommandInputBuilder`. These adapters delegate word selection, cursor
+`cupertinoCommandInputBuilder()`. Both `materialCommandInputBuilder` and
+`cupertinoCommandInputBuilder` are functions returning a `CommandInputEditorBuilder`,
+allowing you to customize appearance properties such as `cursorColor`, `cursorWidth`,
+`cursorHeight`, `cursorRadius`, `cursorOpacityAnimates`, and `showCursor` directly,
+or inherit them from the enclosing `CommandInput`. These adapters delegate word selection, cursor
 dragging, selection handles, magnifier and copy/paste menus to Flutter's
 `TextField` / `CupertinoTextField`. Supply their usual application/localization
 ancestors (and a Material ancestor for the Material editor). The field itself

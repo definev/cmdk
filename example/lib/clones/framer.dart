@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
 import 'package:cmdk/cmdk.dart';
 import 'icons.dart';
+import 'styler_variants.dart';
 
 class FramerCMDK extends StatefulWidget {
   const FramerCMDK({super.key});
@@ -57,10 +58,11 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .fontWeight(FontWeight.w500);
 
   // Item stylers
-  BoxStyler itemBoxStyle(bool isSelected) => BoxStyler()
+  final itemBoxStyle = BoxStyler()
       .padding(EdgeInsetsGeometryMix.all(8.0))
       .borderRadius(BorderRadiusGeometryMix.circular(12.0))
-      .color(isSelected ? const Color(0xFF0091FF) : const Color(0x00000000));
+      .color(const Color(0x00000000))
+      .onSelected(BoxStyler().color(const Color(0xFF0091FF)));
 
   final itemRowStyle =
       FlexBoxStyler().crossAxisAlignment(CrossAxisAlignment.center);
@@ -71,17 +73,19 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .borderRadius(BorderRadiusGeometryMix.circular(8.0))
       .alignment(Alignment.center);
 
-  TextStyler itemTitleStyle(bool isSelected) => TextStyler()
+  final itemTitleStyle = TextStyler()
       .fontSize(14.0)
       .height(1.2)
       .fontWeight(FontWeight.w500)
-      .color(isSelected ? const Color(0xFFFFFFFF) : const Color(0xFFEDEDED));
+      .color(const Color(0xFFEDEDED))
+      .onSelected(TextStyler().color(const Color(0xFFFFFFFF)));
 
-  TextStyler itemSubtitleStyle(bool isSelected) => TextStyler()
+  final itemSubtitleStyle = TextStyler()
       .fontSize(12.0)
       .height(1.2)
       .fontWeight(FontWeight.w400)
-      .color(isSelected ? const Color(0xFFFFFFFF) : const Color(0xFF707075));
+      .color(const Color(0xFF707075))
+      .onSelected(TextStyler().color(const Color(0xFFFFFFFF)));
 
   // Preview component stylers
   final previewButtonStyle = BoxStyler()
@@ -298,40 +302,41 @@ class _FramerCMDKState extends State<FramerCMDK> {
     return CommandItem(
       value: item.value,
       builder: (context, state) {
-        final isSelected = state.isSelected;
-
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Box(
-            style: itemBoxStyle(isSelected),
-            child: RowBox(
-              style: itemRowStyle,
-              children: [
-                // Orange square icon wrapper
-                Box(
-                  style: iconWrapperStyle,
-                  child: item.icon,
-                ),
-                const SizedBox(width: 12.0),
-                // Meta column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      StyledText(
-                        item.value,
-                        style: itemTitleStyle(isSelected),
-                      ),
-                      const SizedBox(height: 2.0),
-                      StyledText(
-                        item.subtitle,
-                        style: itemSubtitleStyle(isSelected),
-                      ),
-                    ],
+        return CommandItemStateProvider(
+          state: state,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Box(
+              style: itemBoxStyle,
+              child: RowBox(
+                style: itemRowStyle,
+                children: [
+                  // Orange square icon wrapper
+                  Box(
+                    style: iconWrapperStyle,
+                    child: item.icon,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12.0),
+                  // Meta column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        StyledText(
+                          item.value,
+                          style: itemTitleStyle,
+                        ),
+                        const SizedBox(height: 2.0),
+                        StyledText(
+                          item.subtitle,
+                          style: itemSubtitleStyle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

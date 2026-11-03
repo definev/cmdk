@@ -6,10 +6,13 @@ panel layout independently of the editor implementation.
 
 ## Framework editors
 
-Use `materialCommandInputBuilder` from `package:cmdk/material.dart` under a
-Material application, or `cupertinoCommandInputBuilder` from
-`package:cmdk/cupertino.dart` under a Cupertino application. Both build a full
-framework field without decoration; the command input retains its outer visual
+Use `materialCommandInputBuilder(...)` from `package:cmdk/material.dart` under a
+Material application, or `cupertinoCommandInputBuilder(...)` from
+`package:cmdk/cupertino.dart` under a Cupertino application. Both functions return
+a `CommandInputEditorBuilder` that builds a full framework field without decoration,
+and allow custom appearance configuration like `cursorColor`, `cursorWidth`,
+`cursorHeight`, `cursorRadius`, `cursorOpacityAnimates`, and `showCursor` (or inherit
+them from `CommandInput` via `CommandInputEditor`). The command input retains its outer visual
 composition. Flutter owns touch gestures, platform word boundaries, handles,
 magnifier, clipboard actions, caret reveal and accessibility behavior.
 

@@ -2,11 +2,9 @@ import 'package:cmdk/cmdk.dart';
 import 'package:cmdk/cupertino.dart';
 import 'package:cmdk/material.dart';
 // Exercise the SDK adapters across the package's supported Flutter range.
-// ignore: deprecated_member_use
-import 'package:flutter/cupertino.dart' as cupertino;
+import 'package:cupertino_ui/cupertino_ui.dart' as cupertino;
 import 'package:flutter/gestures.dart';
-// ignore: deprecated_member_use
-import 'package:flutter/material.dart' as material;
+import 'package:material_ui/material_ui.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,8 +16,8 @@ enum _Editor {
 
   CommandInputEditorBuilder? get builder => switch (this) {
     headless => null,
-    material => materialCommandInputBuilder,
-    cupertino => cupertinoCommandInputBuilder,
+    material => materialCommandInputBuilder(),
+    cupertino => cupertinoCommandInputBuilder(),
   };
 
   TargetPlatform get platform =>
@@ -577,7 +575,142 @@ void main() {
           expect(calls, 1);
           expect(_editable(tester).focusNode.hasPrimaryFocus, isTrue);
         });
+
+        testEditor('appearance props flow from CommandInput to editor', (
+          tester,
+        ) async {
+          final command = CommandController();
+          await tester.pumpWidget(
+            _app(
+              editor,
+              _menu(
+                command,
+                CommandInput(
+                  editorBuilder: editor.builder,
+                  cursorColor: const Color(0xFF123456),
+                  cursorWidth: 5.0,
+                  cursorHeight: 24.0,
+                  cursorRadius: const Radius.circular(3.0),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          final editable = _editable(tester);
+          expect(editable.cursorColor, const Color(0xFF123456));
+          expect(editable.cursorWidth, 5.0);
+          expect(editable.cursorHeight, 24.0);
+          expect(editable.cursorRadius, const Radius.circular(3.0));
+        });
       }
     });
   }
+
+  group('materialCommandInputBuilder appearance setup', () {
+    testWidgets('allows configuring cursorColor and cursorWidth directly', (
+      tester,
+    ) async {
+      final command = CommandController();
+      await tester.pumpWidget(
+        _app(
+          _Editor.material,
+          _menu(
+            command,
+            CommandInput(
+              cursorColor: const Color(0xFF000000),
+              cursorWidth: 2.0,
+              editorBuilder: materialCommandInputBuilder(
+                cursorColor: const Color(0xFFFF0000),
+                cursorWidth: 6.0,
+                cursorHeight: 28.0,
+                cursorRadius: const Radius.circular(4.0),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final textField = tester.widget<material.TextField>(
+        find.byType(material.TextField),
+      );
+      expect(textField.cursorColor, const Color(0xFFFF0000));
+      expect(textField.cursorWidth, 6.0);
+      expect(textField.cursorHeight, 28.0);
+      expect(textField.cursorRadius, const Radius.circular(4.0));
+
+      final editable = _editable(tester);
+      expect(editable.cursorColor, const Color(0xFFFF0000));
+      expect(editable.cursorWidth, 6.0);
+    });
+  });
+
+  group('cupertinoCommandInputBuilder appearance setup', () {
+    testWidgets('allows configuring cursorColor and cursorWidth directly', (
+      tester,
+    ) async {
+      final command = CommandController();
+      await tester.pumpWidget(
+        _app(
+          _Editor.cupertino,
+          _menu(
+            command,
+            CommandInput(
+              cursorColor: const Color(0xFF000000),
+              cursorWidth: 2.0,
+              editorBuilder: cupertinoCommandInputBuilder(
+                cursorColor: const Color(0xFF00FF00),
+                cursorWidth: 4.5,
+                cursorHeight: 22.0,
+                cursorRadius: const Radius.circular(5.0),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final cupertinoField = tester.widget<cupertino.CupertinoTextField>(
+        find.byType(cupertino.CupertinoTextField),
+      );
+      expect(cupertinoField.cursorColor, const Color(0xFF00FF00));
+      expect(cupertinoField.cursorWidth, 4.5);
+      expect(cupertinoField.cursorHeight, 22.0);
+      expect(cupertinoField.cursorRadius, const Radius.circular(5.0));
+
+      final editable = _editable(tester);
+      expect(editable.cursorColor, const Color(0xFF00FF00));
+      expect(editable.cursorWidth, 4.5);
+    });
+  });
+
+  group('defaultCommandInputEditorBuilder appearance setup', () {
+    testWidgets('allows configuring cursorColor and cursorWidth directly', (
+      tester,
+    ) async {
+      final command = CommandController();
+      await tester.pumpWidget(
+        _app(
+          _Editor.headless,
+          _menu(
+            command,
+            CommandInput(
+              cursorColor: const Color(0xFF000000),
+              cursorWidth: 2.0,
+              editorBuilder: defaultCommandInputEditorBuilder(
+                cursorColor: const Color(0xFF0000FF),
+                cursorWidth: 7.0,
+                cursorHeight: 25.0,
+                cursorRadius: const Radius.circular(6.0),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final editable = _editable(tester);
+      expect(editable.cursorColor, const Color(0xFF0000FF));
+      expect(editable.cursorWidth, 7.0);
+      expect(editable.cursorHeight, 25.0);
+      expect(editable.cursorRadius, const Radius.circular(6.0));
+    });
+  });
 }

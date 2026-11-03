@@ -3,23 +3,24 @@ import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
 import 'package:cmdk/cmdk.dart';
 import 'icons.dart';
+import 'styler_variants.dart';
 
 class VercelPopPageIntent extends Intent {
   const VercelPopPageIntent();
 }
 
-class _VercelPopPageAction extends Action<VercelPopPageIntent> {
-  _VercelPopPageAction(this.canPop, this.onPop);
-  final bool canPop;
+class _VercelDeleteCharacterAction extends Action<DeleteCharacterIntent> {
+  _VercelDeleteCharacterAction(this.canPop, this.onPop);
+  final ValueGetter<bool> canPop;
   final VoidCallback onPop;
 
   @override
-  bool isEnabled(VercelPopPageIntent intent) => canPop;
-
-  @override
-  Object? invoke(VercelPopPageIntent intent) {
-    onPop();
-    return null;
+  Object? invoke(DeleteCharacterIntent intent) {
+    if (!intent.forward && canPop()) {
+      onPop();
+      return null;
+    }
+    return callingAction?.invoke(intent);
   }
 }
 
@@ -34,13 +35,14 @@ class _VercelCMDKState extends State<VercelCMDK>
     with SingleTickerProviderStateMixin {
   final List<String> _pages = ['Home'];
   String _selectedValue = 'Search Projects...';
-  String _currentSearch = '';
+  late final TextEditingController _searchController;
   late AnimationController _bounceController;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _bounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 140),
@@ -59,9 +61,12 @@ class _VercelCMDKState extends State<VercelCMDK>
 
   @override
   void dispose() {
+    _searchController.dispose();
     _bounceController.dispose();
     super.dispose();
   }
+
+  bool _canPop() => _searchController.text.isEmpty && _pages.length > 1;
 
   void _triggerBounce() {
     _bounceController.forward(from: 0.0);
@@ -71,7 +76,7 @@ class _VercelCMDKState extends State<VercelCMDK>
     _triggerBounce();
     setState(() {
       _pages.add(page);
-      _currentSearch = '';
+      _searchController.clear();
       if (page == 'Projects') {
         _selectedValue = 'vercel/website';
       }
@@ -83,7 +88,7 @@ class _VercelCMDKState extends State<VercelCMDK>
       _triggerBounce();
       setState(() {
         _pages.removeLast();
-        _currentSearch = '';
+        _searchController.clear();
         _selectedValue = 'Search Projects...';
       });
     }
@@ -140,20 +145,22 @@ class _VercelCMDKState extends State<VercelCMDK>
       .fontWeight(FontWeight.w500);
 
   // Item stylers
-  BoxStyler itemBoxStyle(bool isSelected) => BoxStyler()
+  final itemBoxStyle = BoxStyler()
       .height(48.0)
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16.0))
       .borderRadius(BorderRadiusGeometryMix.circular(8.0))
-      .color(isSelected ? const Color(0xFF222222) : const Color(0x00000000));
+      .color(const Color(0x00000000))
+      .onSelected(BoxStyler().color(const Color(0xFF222222)));
 
   final itemRowStyle =
       FlexBoxStyler().crossAxisAlignment(CrossAxisAlignment.center);
 
-  TextStyler itemLabelStyle(bool isSelected) => TextStyler()
+  final itemLabelStyle = TextStyler()
       .fontSize(14.0)
       .height(1.2)
       .fontWeight(FontWeight.w400)
-      .color(isSelected ? const Color(0xFFEDEDED) : const Color(0xFF888888));
+      .color(const Color(0xFF888888))
+      .onSelected(TextStyler().color(const Color(0xFFEDEDED)));
 
   final shortcutKeycapStyle = BoxStyler()
       .height(20.0)
@@ -184,15 +191,20 @@ class _VercelCMDKState extends State<VercelCMDK>
         child: Command(
           value: _selectedValue,
           onValueChange: (v) => setState(() => _selectedValue = v ?? ''),
-          onSearchChange: (s) => setState(() => _currentSearch = s),
           shortcuts: {
             ...CommandKeyboardShortcuts.defaults(),
             const SingleActivator(LogicalKeyboardKey.backspace):
-                const VercelPopPageIntent(),
+                const DeleteCharacterIntent(forward: false),
           },
           actions: {
-            VercelPopPageIntent: _VercelPopPageAction(
-              _currentSearch.isEmpty && _pages.length > 1,
+            VercelPopPageIntent: CallbackAction<VercelPopPageIntent>(
+              onInvoke: (_) {
+                if (_canPop()) _popPage();
+                return null;
+              },
+            ),
+            DeleteCharacterIntent: _VercelDeleteCharacterAction(
+              _canPop,
               _popPage,
             ),
           },
@@ -221,19 +233,20 @@ class _VercelCMDKState extends State<VercelCMDK>
               // Search Input with bottom border line
               Box(
                 style: searchInputContainerStyle,
-                child: const CommandInput(
+                child: CommandInput(
+                  controller: _searchController,
                   placeholder: 'What do you need?',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 17.0,
                     color: Color(0xFFEDEDED),
                     fontWeight: FontWeight.w400,
                   ),
-                  placeholderStyle: TextStyle(
+                  placeholderStyle: const TextStyle(
                     fontSize: 17.0,
                     color: Color(0xFF707075),
                     fontWeight: FontWeight.w400,
                   ),
-                  cursorColor: Color(0xFFEDEDED),
+                  cursorColor: const Color(0xFFEDEDED),
                 ),
               ),
 
@@ -399,26 +412,26 @@ class _VercelCMDKState extends State<VercelCMDK>
       value: value,
       onSelect: onSelect,
       builder: (context, state) {
-        final isSelected = state.isSelected;
-
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Box(
-            style: itemBoxStyle(isSelected),
-            child: RowBox(
-              style: itemRowStyle,
-              children: [
-                SizedBox(
-                  width: 18.0,
-                  height: 18.0,
-                  child: Center(child: icon),
-                ),
-                const SizedBox(width: 12.0),
-                StyledText(
-                  label,
-                  style: itemLabelStyle(isSelected),
-                ),
-                const Spacer(),
+        return CommandItemStateProvider(
+          state: state,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Box(
+              style: itemBoxStyle,
+              child: RowBox(
+                style: itemRowStyle,
+                children: [
+                  SizedBox(
+                    width: 18.0,
+                    height: 18.0,
+                    child: Center(child: icon),
+                  ),
+                  const SizedBox(width: 12.0),
+                  StyledText(
+                    label,
+                    style: itemLabelStyle,
+                  ),
+                  const Spacer(),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -439,8 +452,9 @@ class _VercelCMDKState extends State<VercelCMDK>
               ],
             ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 }

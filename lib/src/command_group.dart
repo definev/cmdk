@@ -48,6 +48,8 @@ class _CommandGroupState extends State<CommandGroup> {
   late final String _generatedId;
   String get _groupId => widget.value ?? _generatedId;
   CommandController? _controller;
+  final _headerKey = GlobalKey(debugLabel: 'cmdk_group_header');
+  final _groupKey = GlobalKey(debugLabel: 'cmdk_group');
 
   @override
   void initState() {
@@ -97,7 +99,10 @@ class _CommandGroupState extends State<CommandGroup> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.heading != null)
-              Semantics(header: true, child: widget.heading!),
+              KeyedSubtree(
+                key: _headerKey,
+                child: Semantics(header: true, child: widget.heading!),
+              ),
             CommandCollection(children: widget.children),
           ],
         );
@@ -131,9 +136,14 @@ class _CommandGroupState extends State<CommandGroup> {
           groupId: _groupId,
           forceMount: widget.forceMount,
           spacing: widget.spacing,
-          child: ExcludeFocus(
-            excluding: !visible,
-            child: Offstage(offstage: !visible, child: content),
+          headerKey: widget.heading != null ? _headerKey : null,
+          groupKey: _groupKey,
+          child: KeyedSubtree(
+            key: _groupKey,
+            child: ExcludeFocus(
+              excluding: !visible,
+              child: Offstage(offstage: !visible, child: content),
+            ),
           ),
         );
       },

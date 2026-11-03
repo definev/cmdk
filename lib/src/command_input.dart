@@ -22,6 +22,11 @@ class CommandInputEditor {
     required this.style,
     required this.cursorColor,
     required this.backgroundCursorColor,
+    this.cursorWidth = 2.0,
+    this.cursorHeight,
+    this.cursorRadius,
+    this.cursorOpacityAnimates,
+    this.showCursor,
     required this.onEditingComplete,
     required this.onSubmitted,
     required this.autocorrect,
@@ -39,6 +44,11 @@ class CommandInputEditor {
   final TextStyle style;
   final Color cursorColor;
   final Color backgroundCursorColor;
+  final double cursorWidth;
+  final double? cursorHeight;
+  final Radius? cursorRadius;
+  final bool? cursorOpacityAnimates;
+  final bool? showCursor;
   final VoidCallback onEditingComplete;
   final ValueChanged<String> onSubmitted;
   final bool autocorrect;
@@ -49,6 +59,51 @@ class CommandInputEditor {
   final Brightness? keyboardAppearance;
   final EdgeInsets scrollPadding;
 }
+
+/// Creates a default widgets-only editor builder using Flutter's core [EditableText].
+///
+/// Appearance properties such as [cursorColor], [cursorWidth], [cursorHeight],
+/// [cursorRadius], [cursorOpacityAnimates], and [showCursor] can be configured
+/// directly. Any omitted property defaults to the values passed by
+/// [CommandInputEditor] from the enclosing [CommandInput].
+CommandInputEditorBuilder defaultCommandInputEditorBuilder({
+  Color? cursorColor,
+  Color? backgroundCursorColor,
+  double? cursorWidth,
+  double? cursorHeight,
+  Radius? cursorRadius,
+  bool? cursorOpacityAnimates,
+  bool? showCursor,
+  TextStyle? style,
+  Brightness? keyboardAppearance,
+  EdgeInsets? scrollPadding,
+}) => (BuildContext context, CommandInputEditor editor) => EditableText(
+  controller: editor.controller,
+  focusNode: editor.focusNode,
+  autofocus: editor.autofocus,
+  style: style ?? editor.style,
+  cursorColor: cursorColor ?? editor.cursorColor,
+  backgroundCursorColor:
+      backgroundCursorColor ?? editor.backgroundCursorColor,
+  cursorWidth: cursorWidth ?? editor.cursorWidth,
+  cursorHeight: cursorHeight ?? editor.cursorHeight,
+  cursorRadius: cursorRadius ?? editor.cursorRadius,
+  cursorOpacityAnimates:
+      cursorOpacityAnimates ?? editor.cursorOpacityAnimates ?? false,
+  showCursor: showCursor ?? editor.showCursor,
+  keyboardType: TextInputType.text,
+  textInputAction: TextInputAction.search,
+  autocorrect: editor.autocorrect,
+  enableSuggestions: editor.enableSuggestions,
+  textCapitalization: editor.textCapitalization,
+  smartDashesType: editor.smartDashesType,
+  smartQuotesType: editor.smartQuotesType,
+  keyboardAppearance:
+      keyboardAppearance ?? editor.keyboardAppearance ?? Brightness.light,
+  scrollPadding: scrollPadding ?? editor.scrollPadding,
+  onEditingComplete: editor.onEditingComplete,
+  onSubmitted: editor.onSubmitted,
+);
 
 /// A completely headless, unstyled search input for the command menu.
 ///
@@ -65,6 +120,11 @@ class CommandInput extends StatefulWidget {
     this.placeholderStyle,
     this.cursorColor = const Color(0xFF000000),
     this.backgroundCursorColor = const Color(0xFFE0E0E0),
+    this.cursorWidth = 2.0,
+    this.cursorHeight,
+    this.cursorRadius,
+    this.cursorOpacityAnimates,
+    this.showCursor,
     this.onValueChange,
     this.padding,
     this.decoration,
@@ -109,6 +169,21 @@ class CommandInput extends StatefulWidget {
   /// Background cursor color for iOS style cursor.
   final Color backgroundCursorColor;
 
+  /// Cursor width. Defaults to 2.0.
+  final double cursorWidth;
+
+  /// Optional cursor height.
+  final double? cursorHeight;
+
+  /// Optional cursor radius.
+  final Radius? cursorRadius;
+
+  /// Whether the cursor blinks with opacity animation.
+  final bool? cursorOpacityAnimates;
+
+  /// Whether to show the cursor.
+  final bool? showCursor;
+
   /// Callback when the input text changes.
   final ValueChanged<String>? onValueChange;
 
@@ -129,9 +204,9 @@ class CommandInput extends StatefulWidget {
 
   /// Replaces only the editor. Prefix, suffix, decoration, query ownership,
   /// keyboard scoping and IME guards stay with [CommandInput]. The default is
-  /// a low-level [EditableText] with basic gestures. For mobile, use
-  /// materialCommandInputBuilder or cupertinoCommandInputBuilder from the
-  /// corresponding optional library, or supply a native editor of your own.
+  /// [defaultCommandInputEditorBuilder]. For mobile, use
+  /// [materialCommandInputBuilder] or [cupertinoCommandInputBuilder] from the
+  /// corresponding optional library, or supply a native editor builder of your own.
   final CommandInputEditorBuilder? editorBuilder;
 
   /// Whether the keyboard may automatically correct command names.
@@ -355,6 +430,11 @@ class _CommandInputState extends State<CommandInput> {
       style: effectiveStyle,
       cursorColor: widget.cursorColor,
       backgroundCursorColor: widget.backgroundCursorColor,
+      cursorWidth: widget.cursorWidth,
+      cursorHeight: widget.cursorHeight,
+      cursorRadius: widget.cursorRadius,
+      cursorOpacityAnimates: widget.cursorOpacityAnimates,
+      showCursor: widget.showCursor,
       onEditingComplete: _completeEditing,
       onSubmitted: _submit,
       autocorrect: widget.autocorrect,
@@ -378,28 +458,10 @@ class _CommandInputState extends State<CommandInput> {
         CommandInputKeyboardScope(
           controller: _commandController!,
           textController: _textController,
-          child:
-              widget.editorBuilder?.call(context, editor) ??
-              EditableText(
-                controller: _textController,
-                focusNode: _focusNode,
-                autofocus: widget.autofocus,
-                style: effectiveStyle,
-                cursorColor: widget.cursorColor,
-                backgroundCursorColor: widget.backgroundCursorColor,
-                keyboardType: TextInputType.text,
-                textInputAction: TextInputAction.search,
-                autocorrect: editor.autocorrect,
-                enableSuggestions: editor.enableSuggestions,
-                textCapitalization: editor.textCapitalization,
-                smartDashesType: editor.smartDashesType,
-                smartQuotesType: editor.smartQuotesType,
-                keyboardAppearance:
-                    editor.keyboardAppearance ?? Brightness.light,
-                scrollPadding: editor.scrollPadding,
-                onEditingComplete: editor.onEditingComplete,
-                onSubmitted: editor.onSubmitted,
-              ),
+          child: (widget.editorBuilder ?? defaultCommandInputEditorBuilder())(
+            context,
+            editor,
+          ),
         ),
       ],
     );

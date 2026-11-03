@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
 import 'package:cmdk/cmdk.dart';
 import 'icons.dart';
+import 'styler_variants.dart';
 
 class ToggleRaycastActionsIntent extends Intent {
   const ToggleRaycastActionsIntent();
@@ -35,30 +36,88 @@ class RaycastCMDK extends StatefulWidget {
 }
 
 class _RaycastCMDKState extends State<RaycastCMDK>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   String _selectedValue = 'Linear';
   bool _isActionsMenuOpen = false;
   late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
+  late AnimationController _actionsAnimController;
+  late Animation<double> _actionsAnimation;
+  late final FocusNode _mainInputFocusNode;
+  late final FocusNode _actionsInputFocusNode;
 
   @override
   void initState() {
     super.initState();
+    _mainInputFocusNode = FocusNode(debugLabel: 'RaycastMainInput');
+    _actionsInputFocusNode = FocusNode(debugLabel: 'RaycastActionsInput');
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
-    )..repeat();
+    )..repeat(reverse: true);
+    _shimmerAnimation = CurvedAnimation(
+      parent: _shimmerController,
+      curve: Curves.easeInOut,
+    );
+    _actionsAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _actionsAnimation = CurvedAnimation(
+      parent: _actionsAnimController,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
   }
 
   @override
   void dispose() {
     _shimmerController.dispose();
+    _actionsAnimController.dispose();
+    _mainInputFocusNode.dispose();
+    _actionsInputFocusNode.dispose();
     super.dispose();
   }
 
-  void _toggleActionsMenu() {
+  void _openActionsMenu() {
+    if (_isActionsMenuOpen) return;
     setState(() {
-      _isActionsMenuOpen = !_isActionsMenuOpen;
+      _isActionsMenuOpen = true;
     });
+    _mainInputFocusNode.unfocus();
+    _actionsAnimController.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _isActionsMenuOpen) {
+        FocusScope.of(context).requestFocus(_actionsInputFocusNode);
+        _actionsInputFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _closeActionsMenu() {
+    if (!_isActionsMenuOpen) return;
+    setState(() {
+      _isActionsMenuOpen = false;
+    });
+    _actionsInputFocusNode.unfocus();
+    FocusScope.of(context).requestFocus(_mainInputFocusNode);
+    _mainInputFocusNode.requestFocus();
+
+    _actionsAnimController.reverse().then((_) {
+      if (mounted) {
+        setState(() {});
+        FocusScope.of(context).requestFocus(_mainInputFocusNode);
+        _mainInputFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _toggleActionsMenu() {
+    if (_isActionsMenuOpen) {
+      _closeActionsMenu();
+    } else {
+      _openActionsMenu();
+    }
   }
 
   // Outer frame styler
@@ -117,20 +176,23 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       .fontWeight(FontWeight.w500);
 
   // Item stylers
-  BoxStyler itemBoxStyle(bool isSelected) => BoxStyler()
+  final itemBoxStyle = BoxStyler()
       .height(40.0)
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
       .borderRadius(BorderRadiusGeometryMix.circular(8.0))
-      .color(isSelected ? const Color(0xFF28282C) : const Color(0x00000000));
+      .color(const Color(0x00000000))
+      .onHovered(BoxStyler().color(const Color(0xFF242427)))
+      .onSelected(BoxStyler().color(const Color(0xFF28282C)));
 
   final itemContentRowStyle =
       FlexBoxStyler().crossAxisAlignment(CrossAxisAlignment.center);
 
-  TextStyler itemLabelStyle(bool isSelected) => TextStyler()
+  final itemLabelStyle = TextStyler()
       .fontSize(14.0)
       .height(1.2)
       .fontWeight(FontWeight.w400)
-      .color(isSelected ? const Color(0xFFFFFFFF) : const Color(0xFFEDEDED));
+      .color(const Color(0xFFEDEDED))
+      .onSelected(TextStyler().color(const Color(0xFFFFFFFF)));
 
   final itemMetaStyle = TextStyler()
       .fontSize(13.0)
@@ -191,16 +253,32 @@ class _RaycastCMDKState extends State<RaycastCMDK>
         offset: const Offset(0, 10),
       ));
 
-  BoxStyler submenuItemBoxStyle(bool isSelected) => BoxStyler()
+  final submenuItemBoxStyle = BoxStyler()
       .height(40.0)
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
       .borderRadius(BorderRadiusGeometryMix.circular(8.0))
-      .color(isSelected ? const Color(0xFF28282C) : const Color(0x00000000));
+      .color(const Color(0x00000000))
+      .onHovered(BoxStyler().color(const Color(0xFF242427)))
+      .onSelected(BoxStyler().color(const Color(0xFF28282C)));
 
-  TextStyler submenuItemLabelStyle(bool isSelected) => TextStyler()
+  final submenuItemLabelStyle = TextStyler()
       .fontSize(13.0)
       .color(const Color(0xFFEDEDED))
       .fontWeight(FontWeight.w400);
+
+  final submenuKeycapBoxStyle = BoxStyler()
+      .size(20.0, 20.0)
+      .alignment(Alignment.center)
+      .borderRadius(BorderRadiusGeometryMix.circular(4.0))
+      .color(const Color(0xFF28282C))
+      .onHovered(BoxStyler().color(const Color(0xFF323236)))
+      .onSelected(BoxStyler().color(const Color(0xFF38383E)));
+
+  final submenuKeycapTextStyle = TextStyler()
+      .fontSize(12.0)
+      .fontWeight(FontWeight.w500)
+      .color(const Color(0xFF88888E))
+      .onSelected(TextStyler().color(const Color(0xFFEDEDED)));
 
   @override
   Widget build(BuildContext context) {
@@ -215,6 +293,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
             child: Stack(
               children: [
                 Command(
+                  disablePointerSelection: true,
                   value: _selectedValue,
                   onValueChange: (v) =>
                       setState(() => _selectedValue = v ?? ''),
@@ -235,7 +314,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                     ),
                     CloseRaycastActionsIntent: _CloseRaycastActionsAction(
                       _isActionsMenuOpen,
-                      () => setState(() => _isActionsMenuOpen = false),
+                      _closeActionsMenu,
                     ),
                   },
                   child: Column(
@@ -248,19 +327,21 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                       // Search Input
                       Box(
                         style: inputWrapStyle,
-                        child: const CommandInput(
+                        child: CommandInput(
+                          focusNode: _mainInputFocusNode,
+                          autofocus: true,
                           placeholder: 'Search for apps and commands...',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 15.0,
                             color: Color(0xFFEDEDED),
                             fontWeight: FontWeight.w400,
                           ),
-                          placeholderStyle: TextStyle(
+                          placeholderStyle: const TextStyle(
                             fontSize: 15.0,
                             color: Color(0xFF707075),
                             fontWeight: FontWeight.w400,
                           ),
-                          cursorColor: Color(0xFFFF6363),
+                          cursorColor: const Color(0xFFFF6363),
                         ),
                       ),
 
@@ -274,7 +355,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                           shrinkWrap: false,
                           animateHeight: false,
                           padding:
-                              const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 44.0),
+                              const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 52.0),
                           children: [
                             CommandEmpty(
                               child: Box(
@@ -399,35 +480,38 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                         const SizedBox(width: 12.0),
 
                         // "Actions ⌘K"
-                        GestureDetector(
-                          onTap: _toggleActionsMenu,
-                          behavior: HitTestBehavior.opaque,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Container(
-                              height: 28.0,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6.0),
-                              decoration: BoxDecoration(
-                                color: _isActionsMenuOpen
-                                    ? const Color(0xFF28282C)
-                                    : const Color(0x00000000),
-                                borderRadius: BorderRadius.circular(6.0),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  StyledText(
-                                    'Actions',
-                                    style: footerActionTextStyle,
-                                  ),
-                                  const SizedBox(width: 6.0),
-                                  _buildKeyCap('⌘',
-                                      isHighlighted: _isActionsMenuOpen),
-                                  const SizedBox(width: 3.0),
-                                  _buildKeyCap('K',
-                                      isHighlighted: _isActionsMenuOpen),
-                                ],
+                        TapRegion(
+                          groupId: 'raycast_actions',
+                          child: GestureDetector(
+                            onTap: _toggleActionsMenu,
+                            behavior: HitTestBehavior.opaque,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Container(
+                                height: 28.0,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6.0),
+                                decoration: BoxDecoration(
+                                  color: _isActionsMenuOpen
+                                      ? const Color(0xFF28282C)
+                                      : const Color(0x00000000),
+                                  borderRadius: BorderRadius.circular(6.0),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    StyledText(
+                                      'Actions',
+                                      style: footerActionTextStyle,
+                                    ),
+                                    const SizedBox(width: 6.0),
+                                    _buildKeyCap('⌘',
+                                        isHighlighted: _isActionsMenuOpen),
+                                    const SizedBox(width: 3.0),
+                                    _buildKeyCap('K',
+                                        isHighlighted: _isActionsMenuOpen),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -438,7 +522,9 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                 ),
 
                 // Actions Popover Submenu
-                if (_isActionsMenuOpen)
+                if (_isActionsMenuOpen ||
+                    _actionsAnimController.value > 0 ||
+                    _actionsAnimController.isAnimating)
                   Positioned(
                     right: 8.0,
                     bottom: 48.0,
@@ -453,13 +539,13 @@ class _RaycastCMDKState extends State<RaycastCMDK>
   }
 
   Widget _buildAnimatedLoader() {
-    return AnimatedBuilder(
-      animation: _shimmerController,
-      builder: (context, _) {
+    return ValueListenableBuilder(
+      valueListenable: _shimmerAnimation,
+      builder: (context, value, _) {
         return Box(
           style: loaderBaseStyle,
           child: FractionallySizedBox(
-            alignment: Alignment(-1.0 + (_shimmerController.value * 2.0), 0.0),
+            alignment: Alignment(-1.0 + (value * 2.0), 0.0),
             widthFactor: 0.35,
             child: Box(style: loaderShimmerStyle),
           ),
@@ -489,26 +575,28 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       value: value,
       keywords: keywords,
       builder: (context, state) {
-        final isSelected = state.isSelected;
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Box(
-            style: itemBoxStyle(isSelected),
-            child: RowBox(
-              style: itemContentRowStyle,
-              children: [
-                SizedBox(width: 20.0, height: 20.0, child: Center(child: icon)),
-                const SizedBox(width: 10.0),
-                StyledText(
-                  label,
-                  style: itemLabelStyle(isSelected),
-                ),
-                const Spacer(),
-                StyledText(
-                  isCommand ? 'Command' : 'Application',
-                  style: itemMetaStyle,
-                ),
-              ],
+        return CommandItemStateProvider(
+          state: state,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Box(
+              style: itemBoxStyle,
+              child: RowBox(
+                style: itemContentRowStyle,
+                children: [
+                  SizedBox(width: 20.0, height: 20.0, child: Center(child: icon)),
+                  const SizedBox(width: 10.0),
+                  StyledText(
+                    label,
+                    style: itemLabelStyle,
+                  ),
+                  const Spacer(),
+                  StyledText(
+                    isCommand ? 'Command' : 'Application',
+                    style: itemMetaStyle,
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -544,25 +632,98 @@ class _RaycastCMDKState extends State<RaycastCMDK>
   }
 
   Widget _buildActionsSubmenu() {
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: 0.96 + (0.04 * value),
-          alignment: Alignment.bottomRight,
-          child: Opacity(
-            opacity: value,
-            child: child,
+    return AnimatedBuilder(
+      animation: _actionsAnimation,
+      builder: (context, child) {
+        return IgnorePointer(
+          ignoring: !_isActionsMenuOpen,
+          child: Transform.scale(
+            scale: 0.96 + (0.04 * _actionsAnimation.value),
+            alignment: Alignment.bottomRight,
+            child: Opacity(
+              opacity: _actionsAnimation.value.clamp(0.0, 1.0),
+              child: child,
+            ),
           ),
         );
       },
+      child: _RaycastActionsSubmenu(
+        selectedValue: _selectedValue,
+        focusNode: _actionsInputFocusNode,
+        onClose: _closeActionsMenu,
+        submenuBoxStyle: submenuBoxStyle,
+        emptyBoxStyle: emptyBoxStyle,
+        emptyTextStyle: emptyTextStyle,
+        submenuItemBoxStyle: submenuItemBoxStyle,
+        submenuItemLabelStyle: submenuItemLabelStyle,
+        submenuKeycapBoxStyle: submenuKeycapBoxStyle,
+        submenuKeycapTextStyle: submenuKeycapTextStyle,
+        itemContentRowStyle: itemContentRowStyle,
+      ),
+    );
+  }
+}
+
+class _RaycastActionsSubmenu extends StatefulWidget {
+  const _RaycastActionsSubmenu({
+    required this.selectedValue,
+    required this.focusNode,
+    required this.onClose,
+    required this.submenuBoxStyle,
+    required this.emptyBoxStyle,
+    required this.emptyTextStyle,
+    required this.submenuItemBoxStyle,
+    required this.submenuItemLabelStyle,
+    required this.submenuKeycapBoxStyle,
+    required this.submenuKeycapTextStyle,
+    required this.itemContentRowStyle,
+  });
+
+  final String selectedValue;
+  final FocusNode focusNode;
+  final VoidCallback onClose;
+  final BoxStyler submenuBoxStyle;
+  final BoxStyler emptyBoxStyle;
+  final TextStyler emptyTextStyle;
+  final BoxStyler submenuItemBoxStyle;
+  final TextStyler submenuItemLabelStyle;
+  final BoxStyler submenuKeycapBoxStyle;
+  final TextStyler submenuKeycapTextStyle;
+  final FlexBoxStyler itemContentRowStyle;
+
+  @override
+  State<_RaycastActionsSubmenu> createState() => _RaycastActionsSubmenuState();
+}
+
+class _RaycastActionsSubmenuState extends State<_RaycastActionsSubmenu> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).requestFocus(widget.focusNode);
+        widget.focusNode.requestFocus();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.unfocus();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TapRegion(
+      groupId: 'raycast_actions',
+      onTapOutside: (_) => widget.onClose(),
       child: Box(
-        style: submenuBoxStyle,
+        style: widget.submenuBoxStyle,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           child: Command(
+            disablePointerSelection: true,
             shortcuts: {
               ...CommandKeyboardShortcuts.defaults(),
               const SingleActivator(LogicalKeyboardKey.escape):
@@ -574,14 +735,14 @@ class _RaycastCMDKState extends State<RaycastCMDK>
               CloseRaycastActionsIntent:
                   CallbackAction<CloseRaycastActionsIntent>(
                 onInvoke: (_) {
-                  setState(() => _isActionsMenuOpen = false);
+                  widget.onClose();
                   return null;
                 },
               ),
               ToggleRaycastActionsIntent:
                   CallbackAction<ToggleRaycastActionsIntent>(
                 onInvoke: (_) {
-                  setState(() => _isActionsMenuOpen = false);
+                  widget.onClose();
                   return null;
                 },
               ),
@@ -596,10 +757,10 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                   children: [
                     CommandEmpty(
                       child: Box(
-                        style: emptyBoxStyle,
+                        style: widget.emptyBoxStyle,
                         child: StyledText(
                           'No results found.',
-                          style: emptyTextStyle,
+                          style: widget.emptyTextStyle,
                         ),
                       ),
                     ),
@@ -610,7 +771,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                               left: 4.0, top: 4.0, bottom: 8.0),
                         ),
                         child: StyledText(
-                          _selectedValue,
+                          widget.selectedValue,
                           style: TextStyler()
                               .fontSize(12.0)
                               .fontWeight(FontWeight.w500)
@@ -623,58 +784,55 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                           icon: CmdkIcons.window(size: 16),
                           label: 'Open Application',
                           shortcut: const ['↵'],
-                          onSelect: () =>
-                              setState(() => _isActionsMenuOpen = false),
+                          onSelect: widget.onClose,
                         ),
                         _buildSubItem(
                           value: 'Show in Finder',
                           icon: CmdkIcons.finder(size: 16),
                           label: 'Show in Finder',
                           shortcut: const ['⌘', '↵'],
-                          onSelect: () =>
-                              setState(() => _isActionsMenuOpen = false),
+                          onSelect: widget.onClose,
                         ),
                         _buildSubItem(
                           value: 'Show Info in Finder',
                           icon: CmdkIcons.finder(size: 16),
                           label: 'Show Info in Finder',
                           shortcut: const ['⌘', 'I'],
-                          onSelect: () =>
-                              setState(() => _isActionsMenuOpen = false),
+                          onSelect: widget.onClose,
                         ),
                         _buildSubItem(
                           value: 'Add to Favorites',
                           icon: CmdkIcons.star(size: 16),
                           label: 'Add to Favorites',
                           shortcut: const ['⌘', '⇧', 'F'],
-                          onSelect: () =>
-                              setState(() => _isActionsMenuOpen = false),
+                          onSelect: widget.onClose,
                         ),
                       ],
                     ),
                   ],
                 ),
-                const CommandInput(
-                  placeholder: 'Search for actions...',
+                CommandInput(
+                  focusNode: widget.focusNode,
                   autofocus: true,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                  decoration: BoxDecoration(
+                  placeholder: 'Search for actions...',
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                  decoration: const BoxDecoration(
                     border: Border(
                       top: BorderSide(color: Color(0xFF2C2C30), width: 1.0),
                     ),
                   ),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13.0,
                     color: Color(0xFFEDEDED),
                     fontWeight: FontWeight.w400,
                   ),
-                  placeholderStyle: TextStyle(
+                  placeholderStyle: const TextStyle(
                     fontSize: 13.0,
                     color: Color(0xFF88888E),
                     fontWeight: FontWeight.w400,
                   ),
-                  cursorColor: Color(0xFFFF6363),
+                  cursorColor: const Color(0xFFFF6363),
                 ),
               ],
             ),
@@ -695,36 +853,38 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       value: value,
       onSelect: onSelect,
       builder: (context, state) {
-        final isSelected = state.isSelected;
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Box(
-            style: submenuItemBoxStyle(isSelected),
-            child: RowBox(
-              style: itemContentRowStyle,
-              children: [
-                SizedBox(
-                  width: 16.0,
-                  height: 16.0,
-                  child: Center(child: icon),
-                ),
-                const SizedBox(width: 8.0),
-                Expanded(
-                  child: StyledText(
-                    label,
-                    style: submenuItemLabelStyle(isSelected),
+        return CommandItemStateProvider(
+          state: state,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Box(
+              style: widget.submenuItemBoxStyle,
+              child: RowBox(
+                style: widget.itemContentRowStyle,
+                children: [
+                  SizedBox(
+                    width: 16.0,
+                    height: 16.0,
+                    child: Center(child: icon),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (int i = 0; i < shortcut.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 2.0),
-                      _buildSubmenuKeyCap(shortcut[i], isSelected: isSelected),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: StyledText(
+                      label,
+                      style: widget.submenuItemLabelStyle,
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (int i = 0; i < shortcut.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 2.0),
+                        _buildSubmenuKeyCap(shortcut[i]),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -732,22 +892,12 @@ class _RaycastCMDKState extends State<RaycastCMDK>
     );
   }
 
-  Widget _buildSubmenuKeyCap(String text, {required bool isSelected}) {
-    return Container(
-      width: 20.0,
-      height: 20.0,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF38383E) : const Color(0xFF28282C),
-        borderRadius: BorderRadius.circular(4.0),
-      ),
-      child: Text(
+  Widget _buildSubmenuKeyCap(String text) {
+    return Box(
+      style: widget.submenuKeycapBoxStyle,
+      child: StyledText(
         text,
-        style: TextStyle(
-          fontSize: 12.0,
-          color: isSelected ? const Color(0xFFEDEDED) : const Color(0xFF88888E),
-          fontWeight: FontWeight.w500,
-        ),
+        style: widget.submenuKeycapTextStyle,
       ),
     );
   }

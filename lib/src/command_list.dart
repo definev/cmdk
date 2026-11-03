@@ -138,7 +138,11 @@ class _CommandListState extends State<CommandList> {
       final start = padding + index * widget.itemExtent!;
       final end = start + widget.itemExtent!;
       double? target;
-      if (start < position.pixels) {
+      if (index == 0) {
+        target = position.minScrollExtent;
+      } else if (index == visible.length - 1) {
+        target = position.maxScrollExtent;
+      } else if (start < position.pixels) {
         target = start;
       } else if (end > position.pixels + position.viewportDimension) {
         target = end - position.viewportDimension;
@@ -204,6 +208,7 @@ class _CommandListState extends State<CommandList> {
             padding: widget.padding,
             child: CommandListScope(
               spacing: widget.spacing,
+              padding: widget.padding,
               child: CommandCollection(children: widget.children),
             ),
           );

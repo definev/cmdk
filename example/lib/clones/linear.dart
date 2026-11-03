@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
 import 'package:cmdk/cmdk.dart';
 import 'icons.dart';
+import 'styler_variants.dart';
 
 class LinearCMDK extends StatefulWidget {
   const LinearCMDK({super.key});
@@ -58,9 +59,10 @@ class _LinearCMDKState extends State<LinearCMDK> {
       TextStyler().fontSize(14.0).color(const Color(0xFFA0A0A0));
 
   // Item stylers
-  BoxStyler itemBoxStyle(bool isSelected) => BoxStyler()
+  final itemBoxStyle = BoxStyler()
       .height(48.0)
-      .color(isSelected ? const Color(0xFF232323) : const Color(0x00000000));
+      .color(const Color(0x00000000))
+      .onSelected(BoxStyler().color(const Color(0xFF232323)));
 
   final accentIndicatorStyle =
       BoxStyler().width(3.0).color(const Color(0xFF5F6AD2));
@@ -69,11 +71,12 @@ class _LinearCMDKState extends State<LinearCMDK> {
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16.0))
       .crossAxisAlignment(CrossAxisAlignment.center);
 
-  TextStyler itemLabelStyle(bool isSelected) => TextStyler()
+  final itemLabelStyle = TextStyler()
       .fontSize(14.0)
       .height(1.2)
       .fontWeight(FontWeight.w400)
-      .color(isSelected ? const Color(0xFFFFFFFF) : const Color(0xFFEDEDED));
+      .color(const Color(0xFFEDEDED))
+      .onSelected(TextStyler().color(const Color(0xFFFFFFFF)));
 
   final shortcutTextStyle = TextStyler()
       .fontSize(13.0)
@@ -201,61 +204,63 @@ class _LinearCMDKState extends State<LinearCMDK> {
     return CommandItem(
       value: item.label,
       builder: (context, state) {
-        final isSelected = state.isSelected;
         final iconColor =
-            isSelected ? const Color(0xFFEDEDED) : const Color(0xFFA0A0A0);
+            state.isSelected ? const Color(0xFFEDEDED) : const Color(0xFFA0A0A0);
 
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Box(
-            style: itemBoxStyle(isSelected),
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                // Blue accent indicator on the very left edge when selected
-                if (isSelected)
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Box(style: accentIndicatorStyle),
-                  ),
+        return CommandItemStateProvider(
+          state: state,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Box(
+              style: itemBoxStyle,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  // Blue accent indicator on the very left edge when selected
+                  if (state.isSelected)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Box(style: accentIndicatorStyle),
+                    ),
 
-                // Content row strictly centered vertically across the full 48px tile
-                Positioned.fill(
-                  child: RowBox(
-                    style: itemContentRowStyle,
-                    children: [
-                      SizedBox(
-                        width: 16.0,
-                        height: 16.0,
-                        child: Center(child: item.icon(iconColor)),
-                      ),
-                      const SizedBox(width: 12.0),
-                      StyledText(
-                        item.label,
-                        style: itemLabelStyle(isSelected),
-                      ),
-                      const Spacer(),
-                      // Right shortcuts
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        spacing: 6.0,
-                        children: item.shortcut.map((key) {
-                          return key == '⇧'
-                              ? CmdkIcons.shift(
-                                  size: 13.0, color: const Color(0xFFA0A0A0))
-                              : StyledText(
-                                  key,
-                                  style: shortcutTextStyle,
-                                );
-                        }).toList(),
-                      ),
-                    ],
+                  // Content row strictly centered vertically across the full 48px tile
+                  Positioned.fill(
+                    child: RowBox(
+                      style: itemContentRowStyle,
+                      children: [
+                        SizedBox(
+                          width: 16.0,
+                          height: 16.0,
+                          child: Center(child: item.icon(iconColor)),
+                        ),
+                        const SizedBox(width: 12.0),
+                        StyledText(
+                          item.label,
+                          style: itemLabelStyle,
+                        ),
+                        const Spacer(),
+                        // Right shortcuts
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 6.0,
+                          children: item.shortcut.map((key) {
+                            return key == '⇧'
+                                ? CmdkIcons.shift(
+                                    size: 13.0, color: const Color(0xFFA0A0A0))
+                                : StyledText(
+                                    key,
+                                    style: shortcutTextStyle,
+                                  );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'controller.dart';
 import 'models.dart';
@@ -149,11 +150,88 @@ class _CommandItemState extends State<CommandItem> {
     if (_controller?.scrollRequestedId.value == _entryId && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Scrollable.ensureVisible(
-          context,
-          alignment: 0.0,
-          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-        );
+        final scrollable = Scrollable.maybeOf(context);
+        if (scrollable == null || !scrollable.position.hasPixels) return;
+        final position = scrollable.position;
+
+        final renderObject = context.findRenderObject();
+        if (renderObject is! RenderBox || !renderObject.attached) return;
+
+        final viewport = RenderAbstractViewport.maybeOf(renderObject);
+        if (viewport == null) return;
+
+        final visible = _controller!.visibleItems;
+        final isFirstGlobalItem =
+            visible.isNotEmpty && visible.first.id == _entryId;
+        final isLastGlobalItem =
+            visible.isNotEmpty && visible.last.id == _entryId;
+
+        double? target;
+
+        if (isFirstGlobalItem) {
+          // Meta + Up or navigating to the first item: scroll all the way to top to show list padding & first header
+          target = position.minScrollExtent;
+        } else if (isLastGlobalItem) {
+          // Meta + Down or navigating to the last item: scroll all the way to bottom to show list padding & last item
+          target = position.maxScrollExtent;
+        } else {
+          final groupScope = CommandGroupScope.maybeOf(context);
+          RenderBox? groupBox;
+          if (groupScope != null) {
+            ItemEntry? firstInGroup;
+            for (final item in visible) {
+              if (item.groupId == groupScope.groupId) {
+                firstInGroup = item;
+                break;
+              }
+            }
+            if (firstInGroup?.id == _entryId) {
+              final groupContext = groupScope.groupKey?.currentContext ??
+                  groupScope.headerKey?.currentContext;
+              final box = groupContext?.findRenderObject();
+              if (box is RenderBox && box.attached) {
+                groupBox = box;
+              }
+            }
+          }
+
+          final listScope = CommandListScope.maybeOf(context);
+          final listPadding = listScope?.padding?.resolve(
+                Directionality.maybeOf(context) ?? TextDirection.ltr,
+              ) ??
+              EdgeInsets.zero;
+
+          final itemRevealStart =
+              viewport.getOffsetToReveal(renderObject, 0.0).offset;
+          final revealStart = (groupBox != null
+                  ? viewport.getOffsetToReveal(groupBox, 0.0).offset
+                  : itemRevealStart) -
+              listPadding.top;
+          final revealEnd =
+              viewport.getOffsetToReveal(renderObject, 1.0).offset +
+                  listPadding.bottom;
+
+          if (revealStart < revealEnd) {
+            // Region is taller than viewport: align leading edge (show header/top)
+            target = revealStart;
+          } else if (position.pixels < revealEnd) {
+            // Below viewport: scroll down just enough to reveal item bottom
+            target = revealEnd;
+          } else if (position.pixels > revealStart) {
+            // Above viewport: scroll up just enough to reveal header (or item top)
+            target = revealStart;
+          }
+        }
+
+        if (target != null) {
+          final clamped = target.clamp(
+            position.minScrollExtent,
+            position.maxScrollExtent,
+          );
+          if ((clamped - position.pixels).abs() > 0.5) {
+            position.jumpTo(clamped);
+          }
+        }
       });
     }
   }

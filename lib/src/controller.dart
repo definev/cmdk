@@ -90,6 +90,8 @@ class CommandController extends ChangeNotifier {
   bool _dirty = true;
   bool _scheduled = false;
   bool _scrollAfterPublish = false;
+  bool _pendingScrollIntoView = true;
+  String? _pendingScrollValue;
   bool _resetSelectionAfterPublish = false;
   int _batchDepth = 0;
   bool _pendingNotification = false;
@@ -130,18 +132,32 @@ class CommandController extends ChangeNotifier {
     var changed =
         previousFilter != filter || previousShouldFilter != shouldFilter;
     if (changed) _invalidate();
+    var valueChanged = false;
+    var searchChanged = false;
     if (binding.value != null && binding.value!.trim() != _selectedValue) {
       _selectedValue = binding.value!.trim();
+      valueChanged = true;
       changed = true;
     }
     if (binding.search != null && binding.search != _search) {
       _search = binding.search!;
       _resetSelectionAfterPublish = true;
       _invalidate();
+      searchChanged = true;
       changed = true;
     }
     if (changed) {
-      _scrollAfterPublish = true;
+      if (searchChanged) {
+        _scrollAfterPublish = true;
+      } else if (valueChanged) {
+        if (_pendingScrollValue == _selectedValue) {
+          _scrollAfterPublish = _pendingScrollIntoView;
+        } else {
+          _scrollAfterPublish = false;
+        }
+      }
+      _pendingScrollValue = null;
+      _pendingScrollIntoView = true;
       _snapshot = null;
       _scheduleLifecycleNotify();
     }
@@ -173,6 +189,8 @@ class CommandController extends ChangeNotifier {
   void selectValue(String? value, {bool scrollIntoView = true}) {
     final next = value?.trim();
     if (next == _selectedValue) return;
+    _pendingScrollValue = next;
+    _pendingScrollIntoView = scrollIntoView;
     if (_binding?.value == null) {
       _selectedValue = next;
       _snapshot = null;
