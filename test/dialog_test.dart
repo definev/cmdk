@@ -5,69 +5,90 @@ import 'package:cmdk/cmdk.dart';
 
 void main() {
   testWidgets(
-      'controlled route follows updates, rejects dismissal and restores focus',
-      (tester) async {
-    final navigator = GlobalKey<NavigatorState>();
-    final background = FocusNode();
-    late StateSetter update;
-    var open = false;
-    var title = 'First';
-    var requests = 0;
-    await tester.pumpWidget(WidgetsApp(
-        navigatorKey: navigator,
-        color: const Color(0xFF000000),
-        pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
-            pageBuilder: (context, _, __) => builder(context)),
-        home: StatefulBuilder(builder: (context, setState) {
-          update = setState;
-          return Column(children: [
-            Focus(focusNode: background, child: const Text('Background')),
-            CommandDialog(
-                open: open, onOpenChange: (_) => requests++, child: Text(title))
-          ]);
-        })));
-    background.requestFocus();
-    await tester.pumpAndSettle();
-    update(() => open = true);
-    await tester.pumpAndSettle();
-    expect(find.text('First'), findsOneWidget);
-    expect(background.hasFocus, isFalse);
-    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-    await tester.pumpAndSettle();
-    expect(requests, 1);
-    expect(find.text('First'),
-        findsOneWidget); // Parent rejected the close request.
-    await navigator.currentState!.maybePop();
-    await tester.pumpAndSettle();
-    expect(requests, 2);
-    expect(find.text('First'), findsOneWidget);
-    update(() => title = 'Second');
-    await tester.pumpAndSettle();
-    expect(find.text('Second'), findsOneWidget);
-    update(() => open = false);
-    await tester.pumpAndSettle();
-    expect(find.text('Second'), findsNothing);
-    expect(background.hasFocus, isTrue);
-    expect(requests, 2);
-    background.dispose();
-  });
+    'controlled route follows updates, rejects dismissal and restores focus',
+    (tester) async {
+      final navigator = GlobalKey<NavigatorState>();
+      final background = FocusNode();
+      late StateSetter update;
+      var open = false;
+      var title = 'First';
+      var requests = 0;
+      await tester.pumpWidget(
+        WidgetsApp(
+          navigatorKey: navigator,
+          color: const Color(0xFF000000),
+          pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
+            pageBuilder: (context, _, __) => builder(context),
+          ),
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              update = setState;
+              return Column(
+                children: [
+                  Focus(focusNode: background, child: const Text('Background')),
+                  CommandDialog(
+                    open: open,
+                    onOpenChange: (_) => requests++,
+                    child: Text(title),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      background.requestFocus();
+      await tester.pumpAndSettle();
+      update(() => open = true);
+      await tester.pumpAndSettle();
+      expect(find.text('First'), findsOneWidget);
+      expect(background.hasFocus, isFalse);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(requests, 1);
+      expect(
+        find.text('First'),
+        findsOneWidget,
+      ); // Parent rejected the close request.
+      await navigator.currentState!.maybePop();
+      await tester.pumpAndSettle();
+      expect(requests, 2);
+      expect(find.text('First'), findsOneWidget);
+      update(() => title = 'Second');
+      await tester.pumpAndSettle();
+      expect(find.text('Second'), findsOneWidget);
+      update(() => open = false);
+      await tester.pumpAndSettle();
+      expect(find.text('Second'), findsNothing);
+      expect(background.hasFocus, isTrue);
+      expect(requests, 2);
+      background.dispose();
+    },
+  );
 
-  testWidgets('unmounting declarative dialog removes only its owned route',
-      (tester) async {
+  testWidgets('unmounting declarative dialog removes only its owned route', (
+    tester,
+  ) async {
     final navigator = GlobalKey<NavigatorState>();
     late StateSetter update;
     var mounted = true;
-    await tester.pumpWidget(WidgetsApp(
+    await tester.pumpWidget(
+      WidgetsApp(
         navigatorKey: navigator,
         color: const Color(0xFF000000),
         pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
-            pageBuilder: (context, _, __) => builder(context)),
-        home: StatefulBuilder(builder: (context, setState) {
-          update = setState;
-          return mounted
-              ? const CommandDialog(open: true, child: Text('Owned'))
-              : const Text('Home');
-        })));
+          pageBuilder: (context, _, __) => builder(context),
+        ),
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            update = setState;
+            return mounted
+                ? const CommandDialog(open: true, child: Text('Owned'))
+                : const Text('Home');
+          },
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Owned'), findsOneWidget);
     update(() => mounted = false);
@@ -77,34 +98,47 @@ void main() {
     expect(navigator.currentState!.canPop(), isFalse);
   });
 
-  testWidgets('dialog gives autofocus to editable input and closes once',
-      (tester) async {
+  testWidgets('dialog gives autofocus to editable input and closes once', (
+    tester,
+  ) async {
     var requests = 0;
     var open = true;
-    await tester.pumpWidget(WidgetsApp(
+    await tester.pumpWidget(
+      WidgetsApp(
         color: const Color(0xFF000000),
         pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
-            pageBuilder: (context, _, __) => builder(context)),
+          pageBuilder: (context, _, __) => builder(context),
+        ),
         home: StatefulBuilder(
-            builder: (context, setState) => CommandDialog(
-                open: open,
-                onOpenChange: (value) {
-                  requests++;
-                  setState(() => open = value);
-                },
-                child: const Command(
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+          builder: (context, setState) => CommandDialog(
+            open: open,
+            onOpenChange: (value) {
+              requests++;
+              setState(() => open = value);
+            },
+            child: const Command(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   CommandInput(),
                   CommandList(
-                      children: [CommandItem(value: 'a', child: Text('A'))])
-                ]))))));
+                    children: [CommandItem(value: 'a', child: Text('A'))],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(
-        tester
-            .widget<EditableText>(find.byType(EditableText))
-            .focusNode
-            .hasPrimaryFocus,
-        isTrue);
+      tester
+          .widget<EditableText>(find.byType(EditableText))
+          .focusNode
+          .hasPrimaryFocus,
+      isTrue,
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(requests, 1);
@@ -116,32 +150,36 @@ void main() {
 
       await tester.pumpWidget(
         WidgetsApp(
-            color: const Color(0xFF000000),
-            pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
-                pageBuilder: (context, _, __) => builder(context)),
-            home: StatefulBuilder(
-              builder: (context, setState) {
-                return Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: Stack(
-                    children: [
-                      CommandDialog(
-                        open: isOpen,
-                        onOpenChange: (open) => setState(() => isOpen = open),
-                        child: const Command(
-                          child: CommandList(
-                            children: [
-                              CommandItem(
-                                  value: 'item1', child: Text('Modal Item 1')),
-                            ],
-                          ),
+          color: const Color(0xFF000000),
+          pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
+            pageBuilder: (context, _, __) => builder(context),
+          ),
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Directionality(
+                textDirection: TextDirection.ltr,
+                child: Stack(
+                  children: [
+                    CommandDialog(
+                      open: isOpen,
+                      onOpenChange: (open) => setState(() => isOpen = open),
+                      child: const Command(
+                        child: CommandList(
+                          children: [
+                            CommandItem(
+                              value: 'item1',
+                              child: Text('Modal Item 1'),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            )),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       );
       await tester.pump();
 
@@ -156,13 +194,15 @@ void main() {
       expect(find.text('Modal Item 1'), findsNothing);
     });
 
-    testWidgets('imperative CommandDialog.show opens and dismisses',
-        (tester) async {
+    testWidgets('imperative CommandDialog.show opens and dismisses', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         WidgetsApp(
           color: const Color(0xFF000000),
           pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(
-              pageBuilder: (context, _, __) => builder(context)),
+            pageBuilder: (context, _, __) => builder(context),
+          ),
           home: Builder(
             builder: (context) {
               return Directionality(

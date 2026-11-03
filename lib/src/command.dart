@@ -104,16 +104,22 @@ class _CommandState extends State<Command> {
 
   void _createController() {
     _ownsController = widget.controller == null;
-    _controller = widget.controller ??
+    _controller =
+        widget.controller ??
         CommandController(
-            value: widget.value ?? widget.defaultValue, search: widget.search);
+          value: widget.value ?? widget.defaultValue,
+          search: widget.search,
+        );
     _shortcutManager = CommandShortcutManager(
-        _controller, () => widget.focusNode ?? _fallbackFocusNode);
+      _controller,
+      () => widget.focusNode ?? _fallbackFocusNode,
+    );
     _configure();
   }
 
   void _configure() {
-    _controller.attach(CommandBinding(
+    _controller.attach(
+      CommandBinding(
         owner: this,
         value: widget.value,
         search: widget.search,
@@ -123,7 +129,9 @@ class _CommandState extends State<Command> {
         filter: widget.filter,
         loop: widget.loop,
         vimBindings: widget.vimBindings,
-        disablePointerSelection: widget.disablePointerSelection));
+        disablePointerSelection: widget.disablePointerSelection,
+      ),
+    );
   }
 
   @override
@@ -172,24 +180,31 @@ class _CommandState extends State<Command> {
       child: CommandKeyboardScope(
         controller: _controller,
         child: ListenableBuilder(
-            listenable: _controller,
-            builder: (context, _) {
-              _shortcutManager.shortcuts = widget.shortcuts ??
-                  CommandKeyboardShortcuts.defaults(
-                      vimBindings: _controller.vimBindings);
-              return Actions(
-                  actions: {...commandActions(_controller), ...?widget.actions},
-                  child: Shortcuts.manager(
-                      manager: _shortcutManager,
-                      child: Semantics(
-                          label: widget.label ?? 'Command Menu',
-                          container: true,
-                          child: Focus(
-                              focusNode: widget.focusNode ?? _fallbackFocusNode,
-                              autofocus: widget.autofocus,
-                              onKeyEvent: _handleKeyEvent,
-                              child: widget.child))));
-            }),
+          listenable: _controller,
+          builder: (context, _) {
+            _shortcutManager.shortcuts =
+                widget.shortcuts ??
+                CommandKeyboardShortcuts.defaults(
+                  vimBindings: _controller.vimBindings,
+                );
+            return Actions(
+              actions: {...commandActions(_controller), ...?widget.actions},
+              child: Shortcuts.manager(
+                manager: _shortcutManager,
+                child: Semantics(
+                  label: widget.label ?? 'Command Menu',
+                  container: true,
+                  child: Focus(
+                    focusNode: widget.focusNode ?? _fallbackFocusNode,
+                    autofocus: widget.autofocus,
+                    onKeyEvent: _handleKeyEvent,
+                    child: widget.child,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

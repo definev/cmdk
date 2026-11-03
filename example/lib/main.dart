@@ -11,6 +11,14 @@ void main() {
   runApp(const CmdkExampleApp());
 }
 
+class NextThemeIntent extends Intent {
+  const NextThemeIntent();
+}
+
+class PreviousThemeIntent extends Intent {
+  const PreviousThemeIntent();
+}
+
 enum CmdkTheme {
   raycast,
   linear,
@@ -155,109 +163,124 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       color: const Color(0xFF0E0E10),
       pageRouteBuilder: <T>(settings, builder) =>
           PageRouteBuilder<T>(pageBuilder: (ctx, _, __) => builder(ctx)),
-      home: Focus(
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
-                HardwareKeyboard.instance.isMetaPressed) {
-              _nextTheme();
-              return KeyEventResult.handled;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
-                HardwareKeyboard.instance.isMetaPressed) {
-              _prevTheme();
-              return KeyEventResult.handled;
-            }
-          }
-          return KeyEventResult.ignored;
+      home: Shortcuts(
+        shortcuts: const <ShortcutActivator, Intent>{
+          SingleActivator(LogicalKeyboardKey.arrowRight, meta: true):
+              NextThemeIntent(),
+          SingleActivator(LogicalKeyboardKey.arrowRight, control: true):
+              NextThemeIntent(),
+          SingleActivator(LogicalKeyboardKey.arrowLeft, meta: true):
+              PreviousThemeIntent(),
+          SingleActivator(LogicalKeyboardKey.arrowLeft, control: true):
+              PreviousThemeIntent(),
         },
-        child: Container(
-          color: const Color(0xFF0E0E10),
-          child: Stack(
-            children: [
-              // 1. Subtle Background Grid
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _GridPatternPainter(),
-                ),
-              ),
-
-              // 2. Atmospheric Multi-color Radial Glow
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _AtmosphericMeshPainter(),
-                ),
-              ),
-
-              // 3. Main Foreground Content
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0, vertical: 60.0),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 640.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Top Meta Header (Asymmetric Layout)
-                        _buildTopHeader(),
-                        const SizedBox(height: 36.0),
-
-                        // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
-                        SizedBox(
-                          height: 475.0,
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              switchInCurve: Curves.easeOut,
-                              switchOutCurve: Curves.easeIn,
-                              layoutBuilder: (currentChild, previousChildren) {
-                                return Stack(
-                                  alignment: Alignment.topCenter,
-                                  children: [
-                                    ...previousChildren,
-                                    if (currentChild != null) currentChild,
-                                  ],
-                                );
-                              },
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: ScaleTransition(
-                                    scale: Tween<double>(begin: 0.98, end: 1.0)
-                                        .animate(animation),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: _buildCurrentPalette(),
-                            ),
-                          ),
-                        ),
-
-                        // Bottom Theme Switcher Dock with Sliding Pill
-                        Center(
-                          child: _buildThemeSwitcherDock(),
-                        ),
-
-                        const SizedBox(height: 24.0),
-
-                        // Subtle Decorative Wavy Line
-                        Center(
-                          child: CustomPaint(
-                            size: const Size(180, 12),
-                            painter: _WavyLinePainter(),
-                          ),
-                        ),
-                      ],
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            NextThemeIntent: CallbackAction<NextThemeIntent>(
+              onInvoke: (_) {
+                _nextTheme();
+                return null;
+              },
+            ),
+            PreviousThemeIntent: CallbackAction<PreviousThemeIntent>(
+              onInvoke: (_) {
+                _prevTheme();
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: Container(
+              color: const Color(0xFF0E0E10),
+              child: Stack(
+                children: [
+                  // 1. Subtle Background Grid
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _GridPatternPainter(),
                     ),
                   ),
-                ),
+
+                  // 2. Atmospheric Multi-color Radial Glow
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _AtmosphericMeshPainter(),
+                    ),
+                  ),
+
+                  // 3. Main Foreground Content
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 60.0),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 640.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Top Meta Header (Asymmetric Layout)
+                            _buildTopHeader(),
+                            const SizedBox(height: 36.0),
+
+                            // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
+                            SizedBox(
+                              height: 475.0,
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  switchInCurve: Curves.easeOut,
+                                  switchOutCurve: Curves.easeIn,
+                                  layoutBuilder:
+                                      (currentChild, previousChildren) {
+                                    return Stack(
+                                      alignment: Alignment.topCenter,
+                                      children: [
+                                        ...previousChildren,
+                                        if (currentChild != null) currentChild,
+                                      ],
+                                    );
+                                  },
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: ScaleTransition(
+                                        scale:
+                                            Tween<double>(begin: 0.98, end: 1.0)
+                                                .animate(animation),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: _buildCurrentPalette(),
+                                ),
+                              ),
+                            ),
+
+                            // Bottom Theme Switcher Dock with Sliding Pill
+                            Center(
+                              child: _buildThemeSwitcherDock(),
+                            ),
+
+                            const SizedBox(height: 24.0),
+
+                            // Subtle Decorative Wavy Line
+                            Center(
+                              child: CustomPaint(
+                                size: const Size(180, 12),
+                                painter: _WavyLinePainter(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -411,7 +434,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                   ),
                   _buildDockButton(
                     theme: CmdkTheme.vercel,
-                    icon: CmdkIcons.vercel(size: 13),
+                    icon: CmdkIcons.vercel(size: 14),
                     label: 'Vercel',
                   ),
                   _buildDockButton(
@@ -450,9 +473,11 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
         children: [
           icon,
           const SizedBox(width: 6.0),
-          StyledText(
-            label,
-            style: dockTabLabelStyle(isSelected),
+          Flexible(
+            child: StyledText(
+              label,
+              style: dockTabLabelStyle(isSelected),
+            ),
           ),
         ],
       ),

@@ -28,12 +28,13 @@ class CommandItem extends StatefulWidget {
     this.disabled = false,
     this.forceMount = false,
     this.onSelect,
+    this.spacing,
     this.builder,
     this.child,
   }) : assert(
-          value != null || child is Text,
-          'CommandItem requires an explicit `value` parameter, or a `Text` widget as `child` to infer the value.',
-        );
+         value != null || child is Text,
+         'CommandItem requires an explicit `value` parameter, or a `Text` widget as `child` to infer the value.',
+       );
 
   /// Unique value for this item. If null, inferred from [child] if it is a [Text] widget.
   final String? value;
@@ -49,6 +50,10 @@ class CommandItem extends StatefulWidget {
 
   /// Callback fired when the item is activated (via click/tap or Enter key).
   final VoidCallback? onSelect;
+
+  /// Optional spacing above this item if preceded by another visible item.
+  /// If null, defaults to [CommandGroup.spacing] or [CommandList.spacing].
+  final double? spacing;
 
   /// Builder providing item state for custom styling.
   final Widget Function(BuildContext context, CommandItemState state)? builder;
@@ -113,7 +118,8 @@ class _CommandItemState extends State<CommandItem> {
       return;
     }
     _registered = true;
-    _controller?.registerItem(ItemEntry(
+    _controller?.registerItem(
+      ItemEntry(
         id: _id,
         value: _value,
         keywords: List.unmodifiable(widget.keywords),
@@ -121,7 +127,9 @@ class _CommandItemState extends State<CommandItem> {
         disabled: widget.disabled,
         forceMount: widget.forceMount || (groupScope?.forceMount ?? false),
         order: position?.order ?? const [],
-        onSelect: widget.onSelect));
+        onSelect: widget.onSelect,
+      ),
+    );
   }
 
   @override
@@ -160,64 +168,99 @@ class _CommandItemState extends State<CommandItem> {
   Widget build(BuildContext context) {
     final controller = CommandScope.of(context);
     return ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) {
-          final groupScope = CommandGroupScope.maybeOf(context);
-          final forceMount =
-              widget.forceMount || (groupScope?.forceMount ?? false);
+      listenable: controller,
+      builder: (context, _) {
+        final groupScope = CommandGroupScope.maybeOf(context);
+        final forceMount =
+            widget.forceMount || (groupScope?.forceMount ?? false);
 
-          final isVisible = forceMount || controller.isItemVisible(_entryId);
-          if (!isVisible) {
-            return const SizedBox.shrink();
-          }
+        final isVisible = forceMount || controller.isItemVisible(_entryId);
+        if (!isVisible) {
+          return const SizedBox.shrink();
+        }
 
-          final isSelected = controller.selectedValue == _value;
-          final score = controller.itemScore(_entryId);
+        final isSelected = controller.selectedValue == _value;
+        final score = controller.itemScore(_entryId);
 
-          final itemState = CommandItemState(
-            isSelected: isSelected,
-            isDisabled: widget.disabled,
-            isHovered: _isHovered,
-            score: score,
-          );
+        final itemState = CommandItemState(
+          isSelected: isSelected,
+          isDisabled: widget.disabled,
+          isHovered: _isHovered,
+          score: score,
+        );
 
-          Widget content = widget.builder != null
-              ? widget.builder!(context, itemState)
-              : widget.child ?? const SizedBox.shrink();
+        Widget content = widget.builder != null
+            ? widget.builder!(context, itemState)
+            : widget.child ?? const SizedBox.shrink();
 
-          content = MouseRegion(
-            cursor: widget.disabled
-                ? SystemMouseCursors.basic
-                : SystemMouseCursors.click,
-            onEnter: (_) {
-              if (!_isHovered) setState(() => _isHovered = true);
-              if (!widget.disabled && !controller.disablePointerSelection) {
-                controller.selectValue(_value, scrollIntoView: false);
-              }
-            },
-            onHover: (_) {
-              if (!widget.disabled && !controller.disablePointerSelection) {
-                controller.selectValue(_value, scrollIntoView: false);
-              }
-            },
-            onExit: (_) {
-              if (_isHovered) {
-                setState(() => _isHovered = false);
-              }
-            },
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: widget.disabled ? null : _handleSelect,
-              child: content,
-            ),
-          );
-
-          return Semantics(
-            selected: isSelected,
-            enabled: !widget.disabled,
-            button: true,
+        content = MouseRegion(
+          cursor: widget.disabled
+              ? SystemMouseCursors.basic
+              : SystemMouseCursors.click,
+          onEnter: (_) {
+            if (!_isHovered) setState(() => _isHovered = true);
+            if (!widget.disabled && !controller.disablePointerSelection) {
+              controller.selectValue(_value, scrollIntoView: false);
+            }
+          },
+          onHover: (_) {
+            if (!widget.disabled && !controller.disablePointerSelection) {
+              controller.selectValue(_value, scrollIntoView: false);
+            }
+          },
+          onExit: (_) {
+            if (_isHovered) {
+              setState(() => _isHovered = false);
+            }
+          },
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.disabled ? null : _handleSelect,
             child: content,
+          ),
+        );
+
+        final listScope = CommandListScope.maybeOf(context);
+        final effectiveSpacing =
+            widget.spacing ?? groupScope?.spacing ?? listScope?.spacing ?? 0.0;
+
+        var topPadding = 0.0;
+        if (effectiveSpacing > 0) {
+          final targetGroupId = groupScope?.groupId;
+          final myIndex = controller.visibleItems.indexWhere(
+            (i) => i.id == _entryId,
           );
-        });
+          if (myIndex > 0) {
+            for (var i = myIndex - 1; i >= 0; i--) {
+              final prev = controller.visibleItems[i];
+              if (targetGroupId != null) {
+                if (prev.groupId == targetGroupId) {
+                  topPadding = effectiveSpacing;
+                  break;
+                }
+              } else {
+                if (prev.groupId == null) {
+                  topPadding = effectiveSpacing;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // Keep the widget tree shape stable across builds to avoid element remounting.
+        content = Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: content,
+        );
+
+        return Semantics(
+          selected: isSelected,
+          enabled: !widget.disabled,
+          button: true,
+          child: content,
+        );
+      },
+    );
   }
 }

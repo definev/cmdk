@@ -4,8 +4,9 @@ import 'package:cmdk/cmdk.dart';
 
 void main() {
   group('Item lifecycle and state', () {
-    testWidgets('mounted item matches search and becomes visible',
-        (tester) async {
+    testWidgets('mounted item matches search and becomes visible', (
+      tester,
+    ) async {
       final controller = CommandController();
       var showItem = false;
 
@@ -47,8 +48,9 @@ void main() {
       expect(find.text('B'), findsOneWidget);
     });
 
-    testWidgets('unmounting selected item moves selection to first available',
-        (tester) async {
+    testWidgets('unmounting selected item moves selection to first available', (
+      tester,
+    ) async {
       final controller = CommandController();
       var showA = true;
 
@@ -99,8 +101,9 @@ void main() {
       expect(find.text('B'), findsOneWidget);
     });
 
-    testWidgets('selected value does not change when mounting new items',
-        (tester) async {
+    testWidgets('selected value does not change when mounting new items', (
+      tester,
+    ) async {
       final controller = CommandController();
       var showMore = false;
 
@@ -144,8 +147,9 @@ void main() {
       expect(controller.selectedValue, 'second');
     });
 
-    testWidgets('forceMount keeps item rendered even with no match',
-        (tester) async {
+    testWidgets('forceMount keeps item rendered even with no match', (
+      tester,
+    ) async {
       final controller = CommandController();
 
       await tester.pumpWidget(

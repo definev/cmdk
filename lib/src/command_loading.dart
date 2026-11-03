@@ -24,7 +24,8 @@ class CommandLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = child ??
+    Widget content =
+        child ??
         Text(
           label,
           style: const TextStyle(

@@ -33,25 +33,27 @@ class CommandSeparator extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = CommandScope.of(context);
     return ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) {
-          final isSearchEmpty = controller.search.isEmpty;
+      listenable: controller,
+      builder: (context, _) {
+        final isSearchEmpty = controller.search.isEmpty;
 
-          if (!alwaysRender && !isSearchEmpty) {
-            return const SizedBox.shrink();
-          }
+        if (!alwaysRender && !isSearchEmpty) {
+          return const SizedBox.shrink();
+        }
 
-          Widget content = child ??
-              Container(
-                height: height,
-                color: color,
-              );
+        Widget content =
+            child ??
+            Container(
+              height: height,
+              color: color,
+            );
 
-          if (padding != null) {
-            content = Padding(padding: padding!, child: content);
-          }
+        if (padding != null) {
+          content = Padding(padding: padding!, child: content);
+        }
 
-          return content;
-        });
+        return content;
+      },
+    );
   }
 }

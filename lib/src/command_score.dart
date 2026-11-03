@@ -2,11 +2,12 @@ import 'dart:math' as math;
 
 /// Function signature for command filtering.
 /// Returns a score between 0.0 (no match / hidden) and 1.0 (exact match).
-typedef CommandFilter = double Function(
-  String value,
-  String search, [
-  List<String>? keywords,
-]);
+typedef CommandFilter =
+    double Function(
+      String value,
+      String search, [
+      List<String>? keywords,
+    ]);
 
 const double scoreContinueMatch = 1.0;
 const double scoreSpaceWordJump = 0.9;

@@ -60,7 +60,6 @@ class _LinearCMDKState extends State<LinearCMDK> {
   // Item stylers
   BoxStyler itemBoxStyle(bool isSelected) => BoxStyler()
       .height(48.0)
-      .margin(EdgeInsetsGeometryMix.only(bottom: 4.0))
       .color(isSelected ? const Color(0xFF232323) : const Color(0x00000000));
 
   final accentIndicatorStyle =
@@ -175,6 +174,7 @@ class _LinearCMDKState extends State<LinearCMDK> {
                 child: CommandList(
                   shrinkWrap: true,
                   animateHeight: true,
+                  spacing: 4.0,
                   padding: EdgeInsets.zero,
                   children: [
                     CommandEmpty(
@@ -241,17 +241,15 @@ class _LinearCMDKState extends State<LinearCMDK> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
+                        spacing: 6.0,
                         children: item.shortcut.map((key) {
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: key == '⇧'
-                                ? CmdkIcons.shift(
-                                    size: 13.0, color: const Color(0xFFA0A0A0))
-                                : StyledText(
-                                    key,
-                                    style: shortcutTextStyle,
-                                  ),
-                          );
+                          return key == '⇧'
+                              ? CmdkIcons.shift(
+                                  size: 13.0, color: const Color(0xFFA0A0A0))
+                              : StyledText(
+                                  key,
+                                  style: shortcutTextStyle,
+                                );
                         }).toList(),
                       ),
                     ],

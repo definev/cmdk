@@ -13,23 +13,24 @@ import 'src/command_input.dart';
 ///
 /// CommandInput(editorBuilder: materialCommandInputBuilder, ...)
 Widget materialCommandInputBuilder(
-        BuildContext context, CommandInputEditor editor) =>
-    TextField(
-      controller: editor.controller,
-      focusNode: editor.focusNode,
-      autofocus: editor.autofocus,
-      decoration: null,
-      style: editor.style,
-      cursorColor: editor.cursorColor,
-      keyboardType: TextInputType.text,
-      textInputAction: TextInputAction.search,
-      autocorrect: editor.autocorrect,
-      enableSuggestions: editor.enableSuggestions,
-      textCapitalization: editor.textCapitalization,
-      smartDashesType: editor.smartDashesType,
-      smartQuotesType: editor.smartQuotesType,
-      keyboardAppearance: editor.keyboardAppearance,
-      scrollPadding: editor.scrollPadding,
-      onEditingComplete: editor.onEditingComplete,
-      onSubmitted: editor.onSubmitted,
-    );
+  BuildContext context,
+  CommandInputEditor editor,
+) => TextField(
+  controller: editor.controller,
+  focusNode: editor.focusNode,
+  autofocus: editor.autofocus,
+  decoration: null,
+  style: editor.style,
+  cursorColor: editor.cursorColor,
+  keyboardType: TextInputType.text,
+  textInputAction: TextInputAction.search,
+  autocorrect: editor.autocorrect,
+  enableSuggestions: editor.enableSuggestions,
+  textCapitalization: editor.textCapitalization,
+  smartDashesType: editor.smartDashesType,
+  smartQuotesType: editor.smartQuotesType,
+  keyboardAppearance: editor.keyboardAppearance,
+  scrollPadding: editor.scrollPadding,
+  onEditingComplete: editor.onEditingComplete,
+  onSubmitted: editor.onSubmitted,
+);

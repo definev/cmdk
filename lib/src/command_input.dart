@@ -7,8 +7,8 @@ import 'keyboard.dart';
 /// Builds the editor inside [CommandInput]'s input area. The builder must wire
 /// the supplied controller, focus node and both submission callbacks. It must
 /// not dispose them. Query synchronization remains owned by [CommandInput].
-typedef CommandInputEditorBuilder = Widget Function(
-    BuildContext context, CommandInputEditor editor);
+typedef CommandInputEditorBuilder =
+    Widget Function(BuildContext context, CommandInputEditor editor);
 
 /// The editing session shared by a headless or framework-native editor.
 ///
@@ -228,10 +228,12 @@ class _CommandInputState extends State<CommandInput> {
     _syncing = true;
     final selection = _textController.selection;
     _textController.value = TextEditingValue(
-        text: search,
-        selection: selection.copyWith(
-            baseOffset: selection.baseOffset.clamp(0, search.length),
-            extentOffset: selection.extentOffset.clamp(0, search.length)));
+      text: search,
+      selection: selection.copyWith(
+        baseOffset: selection.baseOffset.clamp(0, search.length),
+        extentOffset: selection.extentOffset.clamp(0, search.length),
+      ),
+    );
     _lastText = search;
     _syncing = false;
     if (rebuild && mounted) setState(() {});
@@ -342,7 +344,8 @@ class _CommandInputState extends State<CommandInput> {
   Widget build(BuildContext context) {
     final effectiveStyle = widget.style ?? _defaultStyle;
     final effectivePlaceholderStyle = effectiveStyle.merge(
-        widget.placeholderStyle ?? const TextStyle(color: Color(0xFF888888)));
+      widget.placeholderStyle ?? const TextStyle(color: Color(0xFF888888)),
+    );
     final isEmpty = _textController.text.isEmpty;
 
     final editor = CommandInputEditor._(
@@ -373,29 +376,31 @@ class _CommandInputState extends State<CommandInput> {
                 style: effectivePlaceholderStyle,
               ),
         CommandInputKeyboardScope(
-            controller: _commandController!,
-            textController: _textController,
-            child: widget.editorBuilder?.call(context, editor) ??
-                EditableText(
-                  controller: _textController,
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocus,
-                  style: effectiveStyle,
-                  cursorColor: widget.cursorColor,
-                  backgroundCursorColor: widget.backgroundCursorColor,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.search,
-                  autocorrect: editor.autocorrect,
-                  enableSuggestions: editor.enableSuggestions,
-                  textCapitalization: editor.textCapitalization,
-                  smartDashesType: editor.smartDashesType,
-                  smartQuotesType: editor.smartQuotesType,
-                  keyboardAppearance:
-                      editor.keyboardAppearance ?? Brightness.light,
-                  scrollPadding: editor.scrollPadding,
-                  onEditingComplete: editor.onEditingComplete,
-                  onSubmitted: editor.onSubmitted,
-                )),
+          controller: _commandController!,
+          textController: _textController,
+          child:
+              widget.editorBuilder?.call(context, editor) ??
+              EditableText(
+                controller: _textController,
+                focusNode: _focusNode,
+                autofocus: widget.autofocus,
+                style: effectiveStyle,
+                cursorColor: widget.cursorColor,
+                backgroundCursorColor: widget.backgroundCursorColor,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.search,
+                autocorrect: editor.autocorrect,
+                enableSuggestions: editor.enableSuggestions,
+                textCapitalization: editor.textCapitalization,
+                smartDashesType: editor.smartDashesType,
+                smartQuotesType: editor.smartQuotesType,
+                keyboardAppearance:
+                    editor.keyboardAppearance ?? Brightness.light,
+                scrollPadding: editor.scrollPadding,
+                onEditingComplete: editor.onEditingComplete,
+                onSubmitted: editor.onSubmitted,
+              ),
+        ),
       ],
     );
 
@@ -422,12 +427,13 @@ class _CommandInputState extends State<CommandInput> {
     }
 
     return Focus(
-        canRequestFocus: false,
-        skipTraversal: true,
-        onKeyEvent: _handleKeyEvent,
-        child: Semantics(
-          hint: widget.placeholder,
-          child: TextFieldTapRegion(child: content),
-        ));
+      canRequestFocus: false,
+      skipTraversal: true,
+      onKeyEvent: _handleKeyEvent,
+      child: Semantics(
+        hint: widget.placeholder,
+        child: TextFieldTapRegion(child: content),
+      ),
+    );
   }
 }

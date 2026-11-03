@@ -64,15 +64,23 @@ abstract final class CommandKeyboardShortcuts {
         (LogicalKeyboardKey.keyP, false),
       ]) {
         bindings[SingleActivator(key, control: true)] = CommandNavigateIntent(
-            next ? CommandNavigation.next : CommandNavigation.previous);
-        bindings[SingleActivator(key, control: true, alt: true)] =
-            CommandNavigateIntent(next
-                ? CommandNavigation.nextGroup
-                : CommandNavigation.previousGroup);
+          next ? CommandNavigation.next : CommandNavigation.previous,
+        );
+        bindings[SingleActivator(
+          key,
+          control: true,
+          alt: true,
+        )] = CommandNavigateIntent(
+          next ? CommandNavigation.nextGroup : CommandNavigation.previousGroup,
+        );
         if (apple) {
-          bindings[SingleActivator(key, control: true, meta: true)] =
-              CommandNavigateIntent(
-                  next ? CommandNavigation.last : CommandNavigation.first);
+          bindings[SingleActivator(
+            key,
+            control: true,
+            meta: true,
+          )] = CommandNavigateIntent(
+            next ? CommandNavigation.last : CommandNavigation.first,
+          );
         }
       }
     }
@@ -82,8 +90,11 @@ abstract final class CommandKeyboardShortcuts {
 
 /// Identity separates nested menus; actions and bindings follow the nearest menu.
 class CommandKeyboardScope extends InheritedWidget {
-  const CommandKeyboardScope(
-      {super.key, required this.controller, required super.child});
+  const CommandKeyboardScope({
+    super.key,
+    required this.controller,
+    required super.child,
+  });
   final CommandController controller;
   static CommandKeyboardScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<CommandKeyboardScope>();
@@ -94,11 +105,12 @@ class CommandKeyboardScope extends InheritedWidget {
 
 /// Marks the search editor as opting into command navigation.
 class CommandInputKeyboardScope extends InheritedWidget {
-  const CommandInputKeyboardScope(
-      {super.key,
-      required this.controller,
-      required this.textController,
-      required super.child});
+  const CommandInputKeyboardScope({
+    super.key,
+    required this.controller,
+    required this.textController,
+    required super.child,
+  });
   final CommandController controller;
   final TextEditingController textController;
   bool get isComposing =>
@@ -147,9 +159,9 @@ class CommandShortcutManager extends ShortcutManager {
 }
 
 Map<Type, Action<Intent>> commandActions(CommandController controller) => {
-      CommandNavigateIntent: _NavigateAction(controller),
-      CommandActivateIntent: _ActivateAction(controller),
-    };
+  CommandNavigateIntent: _NavigateAction(controller),
+  CommandActivateIntent: _ActivateAction(controller),
+};
 
 class _NavigateAction extends Action<CommandNavigateIntent> {
   _NavigateAction(this.controller);

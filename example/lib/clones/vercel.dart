@@ -4,6 +4,25 @@ import 'package:mix/mix.dart';
 import 'package:cmdk/cmdk.dart';
 import 'icons.dart';
 
+class VercelPopPageIntent extends Intent {
+  const VercelPopPageIntent();
+}
+
+class _VercelPopPageAction extends Action<VercelPopPageIntent> {
+  _VercelPopPageAction(this.canPop, this.onPop);
+  final bool canPop;
+  final VoidCallback onPop;
+
+  @override
+  bool isEnabled(VercelPopPageIntent intent) => canPop;
+
+  @override
+  Object? invoke(VercelPopPageIntent intent) {
+    onPop();
+    return null;
+  }
+}
+
 class VercelCMDK extends StatefulWidget {
   const VercelCMDK({super.key});
 
@@ -88,7 +107,6 @@ class _VercelCMDKState extends State<VercelCMDK>
   // Breadcrumb badge stylers
   final breadcrumbBadgeStyle = BoxStyler()
       .height(20.0)
-      .margin(EdgeInsetsGeometryMix.only(right: 6.0))
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
       .color(const Color(0xFF222222))
       .borderRadius(BorderRadiusGeometryMix.circular(4.0))
@@ -140,7 +158,6 @@ class _VercelCMDKState extends State<VercelCMDK>
   final shortcutKeycapStyle = BoxStyler()
       .height(20.0)
       .minWidth(20.0)
-      .margin(EdgeInsetsGeometryMix.only(left: 6.0))
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 4.0))
       .color(const Color(0xFF282828))
       .borderRadius(BorderRadiusGeometryMix.circular(4.0))
@@ -168,22 +185,16 @@ class _VercelCMDKState extends State<VercelCMDK>
           value: _selectedValue,
           onValueChange: (v) => setState(() => _selectedValue = v ?? ''),
           onSearchChange: (s) => setState(() => _currentSearch = s),
-          onKeyEvent: (node, event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.backspace &&
-                _currentSearch.isEmpty &&
-                _pages.length > 1) {
-              _popPage();
-              return KeyEventResult.handled;
-            }
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.enter) {
-              if (_selectedValue == 'Search Projects...') {
-                _pushPage('Projects');
-                return KeyEventResult.handled;
-              }
-            }
-            return KeyEventResult.ignored;
+          shortcuts: {
+            ...CommandKeyboardShortcuts.defaults(),
+            const SingleActivator(LogicalKeyboardKey.backspace):
+                const VercelPopPageIntent(),
+          },
+          actions: {
+            VercelPopPageIntent: _VercelPopPageAction(
+              _currentSearch.isEmpty && _pages.length > 1,
+              _popPage,
+            ),
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -194,6 +205,7 @@ class _VercelCMDKState extends State<VercelCMDK>
                 padding:
                     const EdgeInsets.only(left: 4.0, top: 4.0, bottom: 4.0),
                 child: Row(
+                  spacing: 6.0,
                   children: _pages.map((p) {
                     return Box(
                       style: breadcrumbBadgeStyle,
@@ -260,6 +272,8 @@ class _VercelCMDKState extends State<VercelCMDK>
     return [
       CommandGroup(
         heading: _buildGroupHeading('Projects'),
+        spacing: 4.0,
+        topSpacing: 8.0,
         children: [
           _buildVercelItem(
             value: 'Search Projects...',
@@ -276,9 +290,10 @@ class _VercelCMDKState extends State<VercelCMDK>
           ),
         ],
       ),
-      const SizedBox(height: 8.0),
       CommandGroup(
         heading: _buildGroupHeading('Teams'),
+        spacing: 4.0,
+        topSpacing: 8.0,
         children: [
           _buildVercelItem(
             value: 'Search Teams...',
@@ -294,9 +309,10 @@ class _VercelCMDKState extends State<VercelCMDK>
           ),
         ],
       ),
-      const SizedBox(height: 8.0),
       CommandGroup(
         heading: _buildGroupHeading('Help'),
+        spacing: 4.0,
+        topSpacing: 8.0,
         children: [
           _buildVercelItem(
             value: 'Search Docs...',
@@ -325,6 +341,7 @@ class _VercelCMDKState extends State<VercelCMDK>
     return [
       CommandGroup(
         heading: _buildGroupHeading('Projects'),
+        spacing: 4.0,
         children: [
           _buildVercelItem(
             value: 'vercel/website',
@@ -405,6 +422,7 @@ class _VercelCMDKState extends State<VercelCMDK>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 6.0,
                   children: shortcuts.map((key) {
                     return Box(
                       style: shortcutKeycapStyle,

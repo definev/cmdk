@@ -43,8 +43,9 @@ void main() {
       expect(selected, 'second');
     });
 
-    testWidgets('meta arrow up/down goes to first and last item',
-        (tester) async {
+    testWidgets('meta arrow up/down goes to first and last item', (
+      tester,
+    ) async {
       final controller = CommandController();
       await tester.pumpWidget(
         Directionality(

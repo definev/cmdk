@@ -4,8 +4,9 @@ import 'package:cmdk/cmdk.dart';
 
 void main() {
   group('Props and configuration', () {
-    testWidgets('results do not filter when shouldFilter is false',
-        (tester) async {
+    testWidgets('results do not filter when shouldFilter is false', (
+      tester,
+    ) async {
       final controller = CommandController(shouldFilter: false);
       await tester.pumpWidget(
         Directionality(
@@ -36,8 +37,11 @@ void main() {
 
     testWidgets('results match against custom filter function', (tester) async {
       // Custom filter only matches if query is exact prefix
-      double prefixFilter(String value, String search,
-          [List<String>? keywords]) {
+      double prefixFilter(
+        String value,
+        String search, [
+        List<String>? keywords,
+      ]) {
         return value.toLowerCase().startsWith(search.toLowerCase()) ? 1.0 : 0.0;
       }
 
@@ -131,8 +135,9 @@ void main() {
       expect(selectedInScope, 'item2');
     });
 
-    testWidgets('CommandStateSelector updates when selected slice changes',
-        (tester) async {
+    testWidgets('CommandStateSelector updates when selected slice changes', (
+      tester,
+    ) async {
       final controller = CommandController();
       await tester.pumpWidget(
         Directionality(

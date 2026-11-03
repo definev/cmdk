@@ -5,27 +5,29 @@ import 'models.dart';
 
 /// One catalog and one result order shared by layout, filtering and navigation.
 class CommandController extends ChangeNotifier {
-  CommandController(
-      {String? value,
-      String? search,
-      bool shouldFilter = true,
-      bool loop = false,
-      bool vimBindings = true,
-      bool disablePointerSelection = false,
-      CommandFilter? filter,
-      this.onValueChange,
-      this.onSearchChange})
-      : _loop = loop,
-        _vimBindings = vimBindings,
-        _disablePointerSelection = disablePointerSelection,
-        _selectedValue = value?.trim(),
-        _search = search ?? '',
-        _shouldFilter = shouldFilter,
-        _filter = filter ?? defaultFilter;
+  CommandController({
+    String? value,
+    String? search,
+    bool shouldFilter = true,
+    bool loop = false,
+    bool vimBindings = true,
+    bool disablePointerSelection = false,
+    CommandFilter? filter,
+    this.onValueChange,
+    this.onSearchChange,
+  }) : _loop = loop,
+       _vimBindings = vimBindings,
+       _disablePointerSelection = disablePointerSelection,
+       _selectedValue = value?.trim(),
+       _search = search ?? '',
+       _shouldFilter = shouldFilter,
+       _filter = filter ?? defaultFilter;
 
-  static double defaultFilter(String value, String search,
-          [List<String>? keywords]) =>
-      commandScore(value, search, keywords);
+  static double defaultFilter(
+    String value,
+    String search, [
+    List<String>? keywords,
+  ]) => commandScore(value, search, keywords);
   bool _loop;
   bool get loop => _binding?.loop ?? _loop;
   set loop(bool value) => _loop = value;
@@ -107,18 +109,21 @@ class CommandController extends ChangeNotifier {
   }
 
   CommandState get snapshot => _snapshot ??= CommandState(
-      search: search,
-      selectedValue: selectedValue,
-      selectedItemId: selectedItemId,
-      filteredCount: filteredCount,
-      scores: Map.unmodifiable(_scores),
-      visibleGroupIds: Set.unmodifiable(_visibleGroups));
+    search: search,
+    selectedValue: selectedValue,
+    selectedItemId: selectedItemId,
+    filteredCount: filteredCount,
+    scores: Map.unmodifiable(_scores),
+    visibleGroupIds: Set.unmodifiable(_visibleGroups),
+  );
 
   // A Command owns this binding, never the callbacks/configuration of an external controller.
   CommandBinding? _binding;
   void attach(CommandBinding binding) {
-    assert(_binding == null || identical(_binding!.owner, binding.owner),
-        'A controller can only be attached to one Command.');
+    assert(
+      _binding == null || identical(_binding!.owner, binding.owner),
+      'A controller can only be attached to one Command.',
+    );
     final previousFilter = filter;
     final previousShouldFilter = shouldFilter;
     _binding = binding;
@@ -226,14 +231,16 @@ class CommandController extends ChangeNotifier {
     }
     final old = _items[item.id];
     item = item.copyWith(
-        value: item.value.trim(),
-        keywords: List.unmodifiable(item.keywords),
-        order: List.unmodifiable(item.order));
+      value: item.value.trim(),
+      keywords: List.unmodifiable(item.keywords),
+      order: List.unmodifiable(item.order),
+    );
     _items[item.id] = item;
     if (old != null && old.sameMetadata(item)) {
       if (old.onSelect != item.onSelect) {
         _ordered = List.unmodifiable(
-            _ordered.map((entry) => entry.id == item.id ? item : entry));
+          _ordered.map((entry) => entry.id == item.id ? item : entry),
+        );
       }
       return;
     }
@@ -270,9 +277,9 @@ class CommandController extends ChangeNotifier {
       _scheduled = false;
       if (_disposed) return;
       assert(
-          _items.values.map((item) => item.value).toSet().length ==
-              _items.length,
-          'Item values must be unique within a Command.');
+        _items.values.map((item) => item.value).toSet().length == _items.length,
+        'Item values must be unique within a Command.',
+      );
       _batch(() {
         if (_resetSelectionAfterPublish && _binding?.value == null) {
           _selectFirstValidItem();
@@ -296,8 +303,9 @@ class CommandController extends ChangeNotifier {
     if (_selectedValue == null ||
         !_items.values.any((i) => i.value == _selectedValue)) {
       _selectFirstValidItem();
-    } else if (_items.values.any((i) =>
-        i.value == _selectedValue && (i.disabled || !isItemVisible(i.id)))) {
+    } else if (_items.values.any(
+      (i) => i.value == _selectedValue && (i.disabled || !isItemVisible(i.id)),
+    )) {
       _selectFirstValidItem();
     }
   }
@@ -333,8 +341,9 @@ class CommandController extends ChangeNotifier {
     _groups.forEach((id, force) {
       if (force || !shouldFilter || search.isEmpty) _visibleGroups.add(id);
     });
-    _ordered =
-        List.unmodifiable(root.flatten(shouldFilter && search.isNotEmpty));
+    _ordered = List.unmodifiable(
+      root.flatten(shouldFilter && search.isNotEmpty),
+    );
   }
 
   bool isItemVisible(String id) {
@@ -370,9 +379,11 @@ class CommandController extends ChangeNotifier {
     final current = valid.indexWhere((i) => i.value == _selectedValue);
     if (isAlt && current >= 0) {
       final group = valid[current].groupId;
-      for (var i = current + direction;
-          i >= 0 && i < valid.length;
-          i += direction) {
+      for (
+        var i = current + direction;
+        i >= 0 && i < valid.length;
+        i += direction
+      ) {
         if (valid[i].groupId != group) {
           final target = valid[i].groupId;
           selectValue(valid.firstWhere((item) => item.groupId == target).value);
@@ -440,17 +451,18 @@ class _ResultBranch {
 
 /// Internal root binding; values supplied by the parent stay authoritative.
 class CommandBinding {
-  const CommandBinding(
-      {required this.owner,
-      this.value,
-      this.search,
-      this.onValueChange,
-      this.onSearchChange,
-      this.shouldFilter,
-      this.filter,
-      this.loop,
-      this.vimBindings,
-      this.disablePointerSelection});
+  const CommandBinding({
+    required this.owner,
+    this.value,
+    this.search,
+    this.onValueChange,
+    this.onSearchChange,
+    this.shouldFilter,
+    this.filter,
+    this.loop,
+    this.vimBindings,
+    this.disablePointerSelection,
+  });
   final Object owner;
   final String? value;
   final String? search;

@@ -34,17 +34,38 @@ class CommandScope extends InheritedWidget {
   }
 }
 
+/// InheritedWidget passing the current [CommandList] configuration.
+class CommandListScope extends InheritedWidget {
+  const CommandListScope({
+    super.key,
+    this.spacing = 0.0,
+    required super.child,
+  });
+
+  final double spacing;
+
+  static CommandListScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<CommandListScope>();
+  }
+
+  @override
+  bool updateShouldNotify(CommandListScope oldWidget) =>
+      spacing != oldWidget.spacing;
+}
+
 /// InheritedWidget passing the current [groupId] and [forceMount] context.
 class CommandGroupScope extends InheritedWidget {
   const CommandGroupScope({
     super.key,
     required this.groupId,
     this.forceMount = false,
+    this.spacing = 0.0,
     required super.child,
   });
 
   final String groupId;
   final bool forceMount;
+  final double spacing;
 
   static CommandGroupScope? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<CommandGroupScope>();
@@ -52,7 +73,9 @@ class CommandGroupScope extends InheritedWidget {
 
   @override
   bool updateShouldNotify(CommandGroupScope oldWidget) {
-    return groupId != oldWidget.groupId || forceMount != oldWidget.forceMount;
+    return groupId != oldWidget.groupId ||
+        forceMount != oldWidget.forceMount ||
+        spacing != oldWidget.spacing;
   }
 }
 

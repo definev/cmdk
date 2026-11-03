@@ -24,8 +24,9 @@ void main() {
       expect(find.text('Banana'), findsOneWidget);
     });
 
-    testWidgets('explicit item value is preferred over child text',
-        (tester) async {
+    testWidgets('explicit item value is preferred over child text', (
+      tester,
+    ) async {
       String? selectedValue;
       await tester.pumpWidget(
         Directionality(
@@ -35,7 +36,9 @@ void main() {
             child: const CommandList(
               children: [
                 CommandItem(
-                    value: 'custom_apple', child: Text('Display Apple')),
+                  value: 'custom_apple',
+                  child: Text('Display Apple'),
+                ),
               ],
             ),
           ),
@@ -134,8 +137,9 @@ void main() {
       expect(find.text('Car'), findsNothing);
     });
 
-    testWidgets('empty component renders when there are no results',
-        (tester) async {
+    testWidgets('empty component renders when there are no results', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const Directionality(
           textDirection: TextDirection.ltr,

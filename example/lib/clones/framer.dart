@@ -58,7 +58,6 @@ class _FramerCMDKState extends State<FramerCMDK> {
 
   // Item stylers
   BoxStyler itemBoxStyle(bool isSelected) => BoxStyler()
-      .margin(EdgeInsetsGeometryMix.only(bottom: 4.0))
       .padding(EdgeInsetsGeometryMix.all(8.0))
       .borderRadius(BorderRadiusGeometryMix.circular(12.0))
       .color(isSelected ? const Color(0xFF0091FF) : const Color(0x00000000));
@@ -249,6 +248,7 @@ class _FramerCMDKState extends State<FramerCMDK> {
                         ),
                         CommandGroup(
                           heading: _buildGroupHeading('Components'),
+                          spacing: 4.0,
                           children: _items
                               .map((item) => _buildFramerItem(item))
                               .toList(),
