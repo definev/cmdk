@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
+
 import 'package:cmdk_ui/cmdk_ui.dart';
 import 'package:easing_gradient/easing_gradient.dart';
 import 'package:material_ui/material_ui.dart' show Icons;
@@ -124,6 +127,8 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     debugLabel: 'LiquidGlassActionsInput',
   );
   final _actionsRegion = Object();
+  final _pillKey = GlobalKey();
+  double _measuredPillWidth = 255.0;
   late final AnimationController _actionsController;
   late final CurvedAnimation _actionsAnimation;
   bool _animateActions = false;
@@ -137,15 +142,15 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     _actionsController =
         AnimationController(
           vsync: this,
-          duration: const Duration(milliseconds: 160),
-          reverseDuration: const Duration(milliseconds: 120),
+          duration: const Duration(milliseconds: 250),
+          reverseDuration: const Duration(milliseconds: 200),
         )..addStatusListener((status) {
           if (status == AnimationStatus.dismissed && mounted) setState(() {});
         });
     _actionsAnimation = CurvedAnimation(
       parent: _actionsController,
       curve: const Cubic(0.22, 1, 0.36, 1),
-      reverseCurve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
     );
   }
 
@@ -153,10 +158,10 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _actionsController.duration = Duration(
-      milliseconds: _reduceMotion ? 100 : 160,
+      milliseconds: _reduceMotion ? 100 : 250,
     );
     _actionsController.reverseDuration = Duration(
-      milliseconds: _reduceMotion ? 100 : 120,
+      milliseconds: _reduceMotion ? 100 : 200,
     );
   }
 
@@ -198,8 +203,12 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     super.dispose();
   }
 
-  void _openActionsMenu({bool animate = false}) {
+  void _openActionsMenu({bool animate = true}) {
     if (_isActionsMenuOpen || _selectedEntry == null) return;
+    final renderBox = _pillKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      _measuredPillWidth = renderBox.size.width;
+    }
     setState(() => _isActionsMenuOpen = true);
     _animateActions = animate;
     if (animate) {
@@ -215,7 +224,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
   void _closeActionsMenu({bool animate = true}) {
     if (!_isActionsMenuOpen) return;
     setState(() => _isActionsMenuOpen = false);
-    if (animate && _animateActions) {
+    if (animate && _animateActions && !_reduceMotion) {
       _actionsController.reverse();
     } else {
       _actionsController.value = 0;
@@ -223,7 +232,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     _mainInputFocusNode.requestFocus();
   }
 
-  void _toggleActionsMenu({bool animate = false}) => _isActionsMenuOpen
+  void _toggleActionsMenu({bool animate = true}) => _isActionsMenuOpen
       ? _closeActionsMenu(animate: animate)
       : _openActionsMenu(animate: animate);
 
@@ -292,13 +301,13 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
           ToggleLiquidGlassActionsIntent:
               CallbackAction<ToggleLiquidGlassActionsIntent>(
                 onInvoke: (_) {
-                  _toggleActionsMenu();
+                  _toggleActionsMenu(animate: true);
                   return null;
                 },
               ),
           CloseLiquidGlassActionsIntent: _CloseLiquidGlassActionsAction(
             _isActionsMenuOpen,
-            () => _closeActionsMenu(animate: false),
+            () => _closeActionsMenu(animate: true),
           ),
         },
         child: ConstrainedBox(
@@ -320,17 +329,6 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
                     bottom: 8,
                     child: _buildFooter(highContrast, constraints.maxWidth),
                   ),
-                  if (_isActionsMenuOpen || !_actionsController.isDismissed)
-                    Positioned(
-                      left: 8,
-                      right: 8,
-                      top: 8,
-                      bottom: 8,
-                      child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: _animatedActionsMenu(highContrast),
-                      ),
-                    ),
                 ],
               );
             },
@@ -683,74 +681,41 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     final content = Row(
       key: const ValueKey('liquid-glass-footer'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        _controlGlass(
-          highContrast: highContrast,
-          round: true,
-          child: const SizedBox(
-            width: 36,
-            height: 36,
-            child: Center(
-              child: Icon(
-                Icons.short_text_rounded,
-                size: 22,
-                color: _secondary,
-              ),
-            ),
-          ),
-        ),
-        if (!_isActionsMenuOpen)
-          TapRegion(
-            groupId: _actionsRegion,
-            child: _controlGlass(
-              highContrast: highContrast,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (width >= 440)
-                    _button(
-                      label: _selectedEntry?.application == true
-                          ? 'Open Application'
-                          : 'Open Command',
-                      onPress: _activateSelected,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _selectedEntry?.application == true
-                                ? 'Open Application'
-                                : 'Open Command',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: _primary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _keyHint('↵'),
-                        ],
+        AnimatedBuilder(
+          animation: _actionsAnimation,
+          builder: (context, _) {
+            final p = _actionsAnimation.value;
+            if (width < 380 && p > 0.99) return const SizedBox.shrink();
+            final leftWidth = width < 380 ? lerpDouble(36.0, 0.0, p)! : 36.0;
+            final leftOpacity = width < 380 ? (1.0 - p).clamp(0.0, 1.0) : 1.0;
+            if (leftWidth <= 0) return const SizedBox.shrink();
+            return SizedBox(
+              width: leftWidth,
+              height: 36,
+              child: Opacity(
+                opacity: leftOpacity,
+                child: _controlGlass(
+                  highContrast: highContrast,
+                  round: true,
+                  child: const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Center(
+                      child: Icon(
+                        Icons.short_text_rounded,
+                        size: 22,
+                        color: _secondary,
                       ),
                     ),
-                  _button(
-                    label: 'Actions',
-                    onPress: () => _toggleActionsMenu(animate: true),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Actions',
-                          style: TextStyle(fontSize: 12, color: _secondary),
-                        ),
-                        const SizedBox(width: 8),
-                        _keyHint('⌘'),
-                        const SizedBox(width: 3),
-                        _keyHint('K'),
-                      ],
-                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
+        ),
+        _morphingActionsSurface(highContrast, width),
       ],
     );
     if (highContrast) return content;
@@ -768,14 +733,16 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     required Widget child,
     required bool highContrast,
     bool round = false,
+    double radius = 24,
+    List<BoxShadow>? shadows,
   }) {
     if (highContrast) {
-      return _glass(child: child, highContrast: true, radius: 24);
+      return _glass(child: child, highContrast: true, radius: radius);
     }
     final shape = round
         ? const LiquidOval()
-        : const LiquidRoundedSuperellipse(borderRadius: 24);
-    const shadows = [
+        : LiquidRoundedSuperellipse(borderRadius: radius);
+    final effectiveShadows = shadows ?? const [
       BoxShadow(color: Color(0x28000000), blurRadius: 8, offset: Offset(0, 2)),
     ];
     if (!isFlutterGpuSupported) {
@@ -784,12 +751,59 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
         settings: _controlSettings,
         appearance: _controlAppearance,
         shape: shape,
-        shadows: shadows,
+        shadows: effectiveShadows,
         child: child,
       );
     }
-    return LiquidGlass(shape: shape, shadows: shadows, child: child);
+    return LiquidGlass(shape: shape, shadows: effectiveShadows, child: child);
   }
+
+  Widget _buildPillButtons(double width, {Key? key}) => Row(
+    key: key,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (width >= 440)
+        _button(
+          label: _selectedEntry?.application == true
+              ? 'Open Application'
+              : 'Open Command',
+          onPress: _activateSelected,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _selectedEntry?.application == true
+                    ? 'Open Application'
+                    : 'Open Command',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: _primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              _keyHint('↵'),
+            ],
+          ),
+        ),
+      _button(
+        label: 'Actions',
+        onPress: () => _toggleActionsMenu(animate: true),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Actions',
+              style: TextStyle(fontSize: 12, color: _secondary),
+            ),
+            const SizedBox(width: 8),
+            _keyHint('⌘'),
+            const SizedBox(width: 3),
+            _keyHint('K'),
+          ],
+        ),
+      ),
+    ],
+  );
 
   Widget _button({
     required String label,
@@ -828,177 +842,258 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     ),
   );
 
-  Widget _animatedActionsMenu(bool highContrast) => AnimatedBuilder(
-    animation: _actionsAnimation,
-    child: _buildActionsMenu(highContrast),
-    builder: (context, child) {
-      final progress = _actionsAnimation.value;
-      return IgnorePointer(
-        ignoring: !_isActionsMenuOpen,
-        child: ExcludeFocus(
-          excluding: !_isActionsMenuOpen,
-          child: ExcludeSemantics(
-            excluding: !_isActionsMenuOpen,
-            child: Transform.scale(
-              key: const ValueKey('liquid-glass-actions-motion'),
-              alignment: Alignment.bottomRight,
-              scale: _reduceMotion ? 1 : 0.97 + 0.03 * progress,
-              child: Opacity(opacity: progress, child: child),
+  Widget _morphingActionsSurface(bool highContrast, double width) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : 245.5;
+        final targetHeight = math.min(245.5, maxHeight);
+        final availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : (width - 16);
+        final targetWidth = (availableWidth - (highContrast ? 2.0 : 0.0))
+            .clamp(200.0, 350.0);
+        final fallbackCollapsed = width >= 440 ? 255.0 : 116.0;
+        final collapsedWidth =
+            _measuredPillWidth > 0 ? _measuredPillWidth : fallbackCollapsed;
+
+        return AnimatedBuilder(
+          animation: _actionsAnimation,
+          builder: (context, _) {
+            final progress = _actionsAnimation.value;
+            final isOpen = _isActionsMenuOpen || !_actionsController.isDismissed;
+
+            final currentWidth = !isOpen
+                ? null
+                : lerpDouble(collapsedWidth, targetWidth, progress)!;
+            final currentHeight = !isOpen
+                ? 36.0
+                : lerpDouble(36.0, targetHeight, progress)!;
+            final currentRadius = lerpDouble(24.0, 18.0, progress)!;
+            final currentShadow = [
+              BoxShadow(
+                color: Color.lerp(
+                  const Color(0x28000000),
+                  const Color(0x50000000),
+                  progress,
+                )!,
+                blurRadius: lerpDouble(8.0, 24.0, progress)!,
+                offset: Offset(0, lerpDouble(2.0, 10.0, progress)!),
+              ),
+            ];
+
+            return TapRegion(
+              groupId: _actionsRegion,
+              onTapOutside: _isActionsMenuOpen
+                  ? (_) => _closeActionsMenu()
+                  : null,
+              child: _controlGlass(
+                highContrast: highContrast,
+                radius: currentRadius,
+                shadows: currentShadow,
+                child: SizedBox(
+                  width: currentWidth,
+                  height: currentHeight,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(currentRadius),
+                    child: !isOpen
+                        ? _buildPillButtons(width, key: _pillKey)
+                        : Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              if (progress < 0.24)
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  height: 36,
+                                  child: Opacity(
+                                    opacity: ((0.24 - progress) / 0.24).clamp(
+                                      0.0,
+                                      1.0,
+                                    ),
+                                    child: IgnorePointer(
+                                      ignoring: true,
+                                      child: _buildPillButtons(width),
+                                    ),
+                                  ),
+                                ),
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  ignoring: !_isActionsMenuOpen,
+                                  child: ExcludeFocus(
+                                    excluding: !_isActionsMenuOpen,
+                                    child: ExcludeSemantics(
+                                      excluding: !_isActionsMenuOpen,
+                                      child: Opacity(
+                                        opacity: ((progress - 0.08) / 0.72)
+                                            .clamp(0.0, 1.0),
+                                        child: Transform.scale(
+                                          key: const ValueKey(
+                                            'liquid-glass-actions-motion',
+                                          ),
+                                          alignment: Alignment.bottomRight,
+                                          scale: _reduceMotion
+                                              ? 1
+                                              : 0.97 + 0.03 * progress,
+                                          child: OverflowBox(
+                                            minWidth: targetWidth,
+                                            maxWidth: targetWidth,
+                                            minHeight: targetHeight,
+                                            maxHeight: targetHeight,
+                                            alignment: Alignment.bottomRight,
+                                            child: _buildActionsContent(
+                                              highContrast,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildActionsContent(bool highContrast) {
+    final entry = _selectedEntry;
+    return Command(
+      label: 'Actions for $_selectedValue',
+      disablePointerSelection: true,
+      shortcuts: {
+        ...CommandKeyboardShortcuts.defaults(),
+        const SingleActivator(LogicalKeyboardKey.escape):
+            const CloseLiquidGlassActionsIntent(),
+        const SingleActivator(
+          LogicalKeyboardKey.keyK,
+          meta: true,
+          includeRepeats: false,
+        ): const CloseLiquidGlassActionsIntent(),
+        const SingleActivator(
+          LogicalKeyboardKey.keyK,
+          control: true,
+          includeRepeats: false,
+        ): const CloseLiquidGlassActionsIntent(),
+      },
+      actions: {
+        CloseLiquidGlassActionsIntent:
+            CallbackAction<CloseLiquidGlassActionsIntent>(
+              onInvoke: (_) {
+                _closeActionsMenu(animate: true);
+                return null;
+              },
+            ),
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+            child: Text(
+              _selectedValue,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, color: _secondary),
             ),
           ),
-        ),
-      );
-    },
-  );
-
-  Widget _buildActionsMenu(bool highContrast) {
-    final entry = _selectedEntry;
-    final child = TapRegion(
-      groupId: _actionsRegion,
-      onTapOutside: (_) => _closeActionsMenu(),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minWidth: 320,
-          maxWidth: 350,
-          maxHeight: 340,
-        ),
-        child: _glass(
-          highContrast: highContrast,
-          radius: 18,
-          child: Command(
-            label: 'Actions for $_selectedValue',
-            disablePointerSelection: true,
-            shortcuts: {
-              ...CommandKeyboardShortcuts.defaults(),
-              const SingleActivator(LogicalKeyboardKey.escape):
-                  const CloseLiquidGlassActionsIntent(),
-              const SingleActivator(
-                LogicalKeyboardKey.keyK,
-                meta: true,
-                includeRepeats: false,
-              ): const CloseLiquidGlassActionsIntent(),
-              const SingleActivator(
-                LogicalKeyboardKey.keyK,
-                control: true,
-                includeRepeats: false,
-              ): const CloseLiquidGlassActionsIntent(),
-            },
-            actions: {
-              CloseLiquidGlassActionsIntent:
-                  CallbackAction<CloseLiquidGlassActionsIntent>(
-                    onInvoke: (_) {
-                      _closeActionsMenu(animate: false);
-                      return null;
-                    },
-                  ),
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          Flexible(
+            child: CommandList(
+              shrinkWrap: true,
+              animateHeight: false,
+              animationDuration: const Duration(milliseconds: 160),
+              animationCurve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-                  child: Text(
-                    _selectedValue,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: _secondary),
-                  ),
-                ),
-                Flexible(
-                  child: CommandList(
-                    shrinkWrap: true,
-                    animateHeight: false,
-                    animationDuration: const Duration(milliseconds: 160),
-                    animationCurve: Curves.easeOutCubic,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    children: [
-                      const CommandEmpty(
-                        child: Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 36),
-                            child: Text(
-                              'No actions found',
-                              style: TextStyle(fontSize: 13, color: _secondary),
-                            ),
-                          ),
-                        ),
+                const CommandEmpty(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 36),
+                      child: Text(
+                        'No actions found',
+                        style: TextStyle(fontSize: 13, color: _secondary),
                       ),
-                      _action(
-                        entry?.application == true
-                            ? 'Open Application'
-                            : 'Open Command',
-                        Icons.article_outlined,
-                        const ['↵'],
-                        _activateSelected,
-                      ),
-                      const CommandSeparator(
-                        color: _separator,
-                        height: 0.5,
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                      ),
-                      _action(
-                        _favorites.contains(_selectedValue)
-                            ? 'Remove from Favorites'
-                            : 'Add to Favorites',
-                        Icons.star_border_rounded,
-                        const ['⇧', '⌘', 'F'],
-                        _toggleFavorite,
-                      ),
-                      const CommandSeparator(
-                        color: _separator,
-                        height: 0.5,
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                      ),
-                      _action(
-                        'Copy Deeplink',
-                        Icons.content_paste_outlined,
-                        const ['⇧', '⌘', 'C'],
-                        () => _copy(entry?.deeplink ?? ''),
-                      ),
-                      const CommandSeparator(
-                        color: _separator,
-                        height: 0.5,
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                      ),
-                      _action(
-                        'Copy Name',
-                        Icons.copy_outlined,
-                        const [],
-                        () => _copy(_selectedValue),
-                      ),
-                    ],
-                  ),
-                ),
-                CommandInput(
-                  focusNode: _actionsInputFocusNode,
-                  placeholder: 'Search for actions…',
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: _separator, width: 0.5),
                     ),
                   ),
-                  style: const TextStyle(fontSize: 14, color: _primary),
-                  placeholderStyle: const TextStyle(
-                    fontSize: 14,
-                    color: _muted,
-                  ),
-                  cursorColor: _primary,
-                  keyboardAppearance: Brightness.dark,
+                ),
+                _action(
+                  entry?.application == true
+                      ? 'Open Application'
+                      : 'Open Command',
+                  Icons.article_outlined,
+                  const ['↵'],
+                  _activateSelected,
+                ),
+                const CommandSeparator(
+                  color: _separator,
+                  height: 0.5,
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                ),
+                _action(
+                  _favorites.contains(_selectedValue)
+                      ? 'Remove from Favorites'
+                      : 'Add to Favorites',
+                  Icons.star_border_rounded,
+                  const ['⇧', '⌘', 'F'],
+                  _toggleFavorite,
+                ),
+                const CommandSeparator(
+                  color: _separator,
+                  height: 0.5,
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                ),
+                _action(
+                  'Copy Deeplink',
+                  Icons.content_paste_outlined,
+                  const ['⇧', '⌘', 'C'],
+                  () => _copy(entry?.deeplink ?? ''),
+                ),
+                const CommandSeparator(
+                  color: _separator,
+                  height: 0.5,
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                ),
+                _action(
+                  'Copy Name',
+                  Icons.copy_outlined,
+                  const [],
+                  () => _copy(_selectedValue),
                 ),
               ],
             ),
           ),
-        ),
+          CommandInput(
+            focusNode: _actionsInputFocusNode,
+            placeholder: 'Search for actions…',
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: _separator, width: 0.5),
+              ),
+            ),
+            style: const TextStyle(fontSize: 14, color: _primary),
+            placeholderStyle: const TextStyle(
+              fontSize: 14,
+              color: _muted,
+            ),
+            cursorColor: _primary,
+            keyboardAppearance: Brightness.dark,
+          ),
+        ],
       ),
     );
-    return highContrast || !isFlutterGpuSupported
-        ? child
-        : LiquidGlassCapture(child: child);
   }
 
   Widget _action(
