@@ -1,11 +1,18 @@
 name: cmdk
-description: A fast, unstyled, composable command menu for Flutter.
+description: An unstyled, composable command menu and combobox for Flutter with fuzzy search, keyboard navigation, and custom layouts.
 version: 0.1.0
 homepage: https://github.com/definev/cmdk
+repository: https://github.com/definev/cmdk/tree/main/packages/cmdk
+issue_tracker: https://github.com/definev/cmdk/issues
+topics:
+  - command-palette
+  - combobox
+  - fuzzy-search
+  - widgets
 
 environment:
   sdk: ^3.8.0
-  flutter: ">=3.24.0"
+  flutter: ">=3.32.0"
 
 resolution: workspace
 
@@ -17,5 +24,3 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-
-flutter:

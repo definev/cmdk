@@ -409,10 +409,17 @@ class _CommandInputState extends State<CommandInput> {
     if (_isComposing) return;
     final target = _focusNode.context;
     if (target == null) return;
-    final invoke = Actions.handler(target, const CommandActivateIntent());
-    if (invoke == null) return;
+    const intent = CommandActivateIntent();
+    // Pass the intent explicitly: Actions.handler loses its concrete type on
+    // older Flutter releases and can fail to find the activation action.
+    final action = Actions.maybeFind<Intent>(target, intent: intent);
+    if (action == null) return;
+    final enabled = action is ContextAction<Intent>
+        ? action.isEnabled(intent, target)
+        : action.isEnabled(intent);
+    if (!enabled) return;
     if (widget.unfocusOnSubmit) _focusNode.unfocus();
-    invoke();
+    Actions.maybeInvoke(target, intent);
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {

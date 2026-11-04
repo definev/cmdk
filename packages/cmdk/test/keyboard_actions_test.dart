@@ -234,6 +234,38 @@ void main() {
     expect(action.calls, 0);
   });
 
+  testWidgets('soft submission respects context-dependent activation', (
+    t,
+  ) async {
+    final controller = CommandController();
+    final action = _ContextActivation();
+    await t.pumpWidget(
+      app(
+        menu(
+          controller,
+          input: const CommandInput(unfocusOnSubmit: true),
+          actions: {CommandActivateIntent: action},
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+    final editable = t.widget<EditableText>(find.byType(EditableText));
+
+    await t.testTextInput.receiveAction(TextInputAction.search);
+    await t.pump();
+    expect(action.calls, 0);
+    expect(editable.focusNode.hasPrimaryFocus, isTrue);
+
+    action.enabled = true;
+    await t.testTextInput.receiveAction(TextInputAction.search);
+    await t.pump();
+    expect(action.calls, 1);
+    expect(action.contextHadCommand, isTrue);
+    expect(editable.focusNode.hasFocus, isFalse);
+    await t.pumpWidget(const SizedBox());
+    controller.dispose();
+  });
+
   testWidgets(
     'navigation repeats, activation does not repeat or submit twice',
     (t) async {
@@ -538,6 +570,26 @@ class _DisabledActivation extends Action<CommandActivateIntent> {
   @override
   Object? invoke(CommandActivateIntent intent) {
     calls++;
+    return null;
+  }
+}
+
+class _ContextActivation extends ContextAction<CommandActivateIntent> {
+  bool enabled = false;
+  int calls = 0;
+  bool contextHadCommand = false;
+
+  @override
+  bool isEnabled(CommandActivateIntent intent, [BuildContext? context]) =>
+      enabled &&
+      context != null &&
+      CommandScope.of(context).selectedValue == 'a';
+
+  @override
+  Object? invoke(CommandActivateIntent intent, [BuildContext? context]) {
+    calls++;
+    contextHadCommand =
+        context != null && CommandScope.of(context).selectedValue == 'a';
     return null;
   }
 }

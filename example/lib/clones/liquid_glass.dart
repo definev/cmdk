@@ -420,6 +420,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     // FakeGlass supplies the blurred, desaturated backdrop. Paint the face
     // separately so its density stays predictable without simulated rim light.
     return FakeGlass(
+      useBackdropGroup: !panel,
       settings: settings.copyWith(
         highlight: 0,
         contourStrength: 0,
@@ -781,13 +782,19 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
       ],
     );
     if (highContrast) return content;
-    if (!isFlutterGpuSupported) return content;
-    return LiquidGlassCapture(
-      child: LiquidGlassLayer(
-        settings: _controlSettings,
-        defaultAppearance: _controlAppearance,
-        child: content,
-      ),
+    // Footer controls share the rendered list backdrop. Keep the panel out of
+    // this group so controls still see the panel and its content beneath them.
+    return BackdropGroup(
+      child: !isFlutterGpuSupported
+          ? content
+          : LiquidGlassCapture(
+              child: LiquidGlassLayer(
+                useBackdropGroup: true,
+                settings: _controlSettings,
+                defaultAppearance: _controlAppearance,
+                child: content,
+              ),
+            ),
     );
   }
 

@@ -12,13 +12,10 @@ Add `cmdk` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  cmdk:
-    git:
-      url: https://github.com/definev/cmdk.git
-      path: packages/cmdk
+  cmdk: ^0.1.0
 ```
 
-Then run `flutter pub get`.
+Requires Flutter 3.32 or newer and Dart 3.8 or newer. Then run `flutter pub get`.
 
 ## Usage
 
@@ -78,7 +75,7 @@ Use ↑ / ↓ to navigate, and press Enter or tap to run a command.
 The example leaves appearance to your app. Use `CommandItem.builder` to style
 selected rows; see [custom styling](docs/usage.md#custom-styling-and-reactive-state).
 For native text editing and modal helpers, use the companion
-[`cmdk_ui` package](packages/cmdk_ui).
+[`cmdk_ui` package](packages/cmdk_ui/README.md).
 
 ## Showcase
 
