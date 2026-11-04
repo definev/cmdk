@@ -412,7 +412,7 @@ void main() {
             command,
             CommandInput(
               cursorColor: const Color(0xFF000000),
-              cursorWidth: 2.0,
+              cursorWidth: 1.5,
               editorBuilder: defaultCommandInputEditorBuilder(
                 cursorColor: const Color(0xFF0000FF),
                 cursorWidth: 7.0,

@@ -258,4 +258,113 @@ void main() {
     expect(input('LiquidGlassActionsInput'), findsNothing);
     expect(tester.hasRunningAnimations, isFalse);
   });
+
+  testWidgets(
+    '_ScrollEdgeFade masks both main palette and actions menu cleanly',
+    (tester) async {
+      await mountPalette(tester);
+      expect(
+        find.byKey(const ValueKey('liquid-glass-input-edge-fade')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('liquid-glass-bottom-edge-fade')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('liquid-glass-actions-top-edge-fade')),
+        findsNothing,
+      );
+
+      await toggleActions(tester);
+      expect(
+        find.byKey(const ValueKey('liquid-glass-actions-top-edge-fade')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('liquid-glass-actions-bottom-edge-fade')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('opening actions menu focuses search input immediately', (
+    tester,
+  ) async {
+    await mountPalette(tester);
+    final main = input('LiquidGlassMainInput');
+    expect(tester.widget<EditableText>(main).focusNode.hasPrimaryFocus, isTrue);
+
+    // Tap on Actions button directly
+    await tester.tap(find.text('Actions'));
+    await tester.pump();
+    await tester.pump();
+
+    final actions = input('LiquidGlassActionsInput');
+    expect(
+      tester.widget<EditableText>(actions).focusNode.hasPrimaryFocus,
+      isTrue,
+    );
+  });
+
+  testWidgets('actions input keeps focus and query throughout opening', (
+    tester,
+  ) async {
+    await mountPalette(tester);
+    await tester.tap(find.text('Actions'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 10));
+
+    final actions = input('LiquidGlassActionsInput');
+    final editor = tester.widget<EditableText>(actions);
+    expect(editor.focusNode.hasPrimaryFocus, isTrue);
+    // Send text to the active input without requesting focus on its behalf.
+    tester.testTextInput.enterText('Copy');
+    await tester.pump(const Duration(milliseconds: 60));
+
+    final updated = tester.widget<EditableText>(actions);
+    expect(updated.controller, same(editor.controller));
+    expect(updated.focusNode.hasPrimaryFocus, isTrue);
+    expect(updated.controller.text, 'Copy');
+    await tester.pumpAndSettle();
+    expect(find.text('Add to Favorites'), findsNothing);
+    expect(tester.widget<EditableText>(actions).controller.text, 'Copy');
+  });
+
+  testWidgets('actions can close and reopen before animations finish', (
+    tester,
+  ) async {
+    await mountPalette(tester);
+    await tester.tap(find.text('Actions'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final actions = input('LiquidGlassActionsInput');
+    final editor = tester.widget<EditableText>(actions);
+    tester.testTextInput.enterText('Copy');
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    expect(
+      tester
+          .widget<EditableText>(input('LiquidGlassMainInput'))
+          .focusNode
+          .hasPrimaryFocus,
+      isTrue,
+    );
+    await tester.pump(const Duration(milliseconds: 10));
+    await toggleActions(tester);
+
+    expect(
+      tester.widget<EditableText>(actions).controller,
+      same(editor.controller),
+    );
+    expect(editor.focusNode.hasPrimaryFocus, isTrue);
+    expect(editor.controller.text, 'Copy');
+    expect(find.text('Add to Favorites'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(actions, findsNothing);
+  });
 }

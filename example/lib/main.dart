@@ -240,7 +240,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                         // Top Meta Header (Asymmetric Layout)
                         _buildTopHeader(),
                         const SizedBox(height: 36.0),
-                
+
                         // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
                         SizedBox(
                           height: 475.0,
@@ -275,19 +275,11 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                             ),
                           ),
                         ),
-                
+
                         // Bottom Theme Switcher Dock with Sliding Pill
                         Center(child: _buildThemeSwitcherDock()),
-                
+
                         const SizedBox(height: 24.0),
-                
-                        // Subtle Decorative Wavy Line
-                        Center(
-                          child: CustomPaint(
-                            size: const Size(180, 12),
-                            painter: _WavyLinePainter(),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -535,36 +527,6 @@ class _AtmosphericMeshPainter extends CustomPainter {
       ..color = const Color(0x1CEC4899)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 110.0);
     canvas.drawCircle(Offset(center.dx + 40, center.dy + 80), 180.0, pinkPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// Decorative wavy footer line
-class _WavyLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0x208A8F98)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path();
-    const count = 12;
-    final step = size.width / count;
-    path.moveTo(0, size.height * 0.5);
-
-    for (int i = 0; i < count; i++) {
-      final x1 = (i * step) + (step * 0.25);
-      final y1 = (i % 2 == 0) ? 0.0 : size.height;
-      final x2 = (i + 1) * step;
-      final y2 = size.height * 0.5;
-      path.quadraticBezierTo(x1, y1, x2, y2);
-    }
-
-    canvas.drawPath(path, paint);
   }
 
   @override

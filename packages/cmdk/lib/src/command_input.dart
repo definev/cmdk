@@ -22,7 +22,7 @@ class CommandInputEditor {
     required this.style,
     required this.cursorColor,
     required this.backgroundCursorColor,
-    this.cursorWidth = 2.0,
+    this.cursorWidth = 1.5,
     this.cursorHeight,
     this.cursorRadius,
     this.cursorOpacityAnimates,
@@ -121,7 +121,7 @@ class CommandInput extends StatefulWidget {
     this.placeholderStyle,
     this.cursorColor = const Color(0xFF000000),
     this.backgroundCursorColor = const Color(0xFFE0E0E0),
-    this.cursorWidth = 2.0,
+    this.cursorWidth = 1.5,
     this.cursorHeight,
     this.cursorRadius,
     this.cursorOpacityAnimates,
@@ -170,7 +170,7 @@ class CommandInput extends StatefulWidget {
   /// Background cursor color for iOS style cursor.
   final Color backgroundCursorColor;
 
-  /// Cursor width. Defaults to 2.0.
+  /// Cursor width. Defaults to 1.5.
   final double cursorWidth;
 
   /// Optional cursor height.

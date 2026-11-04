@@ -145,7 +145,9 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
           duration: const Duration(milliseconds: 250),
           reverseDuration: const Duration(milliseconds: 200),
         )..addStatusListener((status) {
-          if (status == AnimationStatus.dismissed && mounted) setState(() {});
+          if (status == AnimationStatus.dismissed && mounted) {
+            setState(() {});
+          }
         });
     _actionsAnimation = CurvedAnimation(
       parent: _actionsController,
@@ -171,7 +173,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
   static final _controlSettings = LiquidGlassSettings.ios27RegularDark(
     tintAmount: 0.35,
   );
-  static const _panelAppearance = LiquidGlassAppearance.ios27RegularDark(
+  static const _panelAppearance = LiquidGlassAppearance.ios27Clear(
     tint: Color(0x99141413),
   );
   static const _controlAppearance = LiquidGlassAppearance.ios27RegularDark();
@@ -217,7 +219,9 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
       _actionsController.value = 1;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _isActionsMenuOpen) _actionsInputFocusNode.requestFocus();
+      if (mounted && _isActionsMenuOpen) {
+        _actionsInputFocusNode.requestFocus();
+      }
     });
   }
 
@@ -407,7 +411,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
             8,
             _footerHeight + 4,
           ),
-          scrollbarBuilder: (context, child, controller) => _ScrollEdgeFade(
+          scrollbarBuilder: (context, child, controller) => ScrollEdgeFade(
             topInset: _headerHeight,
             bottomInset: _footerHeight,
             child: rawCommandScrollbarBuilder(
@@ -926,6 +930,11 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
                                   ),
                                 ),
                               Positioned.fill(
+                                // The fading pill is removed during opening.
+                                // Keep the menu's input state and focus intact.
+                                key: const ValueKey(
+                                  'liquid-glass-actions-content',
+                                ),
                                 child: IgnorePointer(
                                   ignoring: !_isActionsMenuOpen,
                                   child: ExcludeFocus(
@@ -1000,94 +1009,114 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
               },
             ),
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-            child: Text(
-              _selectedValue,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, color: _secondary),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 30,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+              child: Text(
+                _selectedValue,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: _secondary),
+              ),
             ),
           ),
-          Flexible(
-            child: CommandList(
-              shrinkWrap: true,
-              animateHeight: false,
-              animationDuration: const Duration(milliseconds: 160),
-              animationCurve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: [
-                const CommandEmpty(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 36),
-                      child: Text(
-                        'No actions found',
-                        style: TextStyle(fontSize: 13, color: _secondary),
+          Positioned.fill(
+            child: ScrollEdgeFade(
+              topInset: 30,
+              bottomInset: 20,
+              topRamp: 30,
+              bottomRamp: 12,
+              topOvershoot: 0,
+              bottomOvershoot: 18,
+              topMaskKey: const ValueKey('liquid-glass-actions-top-edge-fade'),
+              bottomMaskKey: const ValueKey(
+                'liquid-glass-actions-bottom-edge-fade',
+              ),
+              child: CommandList(
+                shrinkWrap: false,
+                animateHeight: false,
+                animationDuration: const Duration(milliseconds: 160),
+                animationCurve: Curves.easeOutCubic,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4) +
+                    const EdgeInsets.only(top: 30, bottom: 40),
+                children: [
+                  const CommandEmpty(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 36),
+                        child: Text(
+                          'No actions found',
+                          style: TextStyle(fontSize: 13, color: _secondary),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                _action(
-                  entry?.application == true
-                      ? 'Open Application'
-                      : 'Open Command',
-                  Icons.article_outlined,
-                  const ['↵'],
-                  _activateSelected,
-                ),
-                const CommandSeparator(
-                  color: _separator,
-                  height: 0.5,
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                ),
-                _action(
-                  _favorites.contains(_selectedValue)
-                      ? 'Remove from Favorites'
-                      : 'Add to Favorites',
-                  Icons.star_border_rounded,
-                  const ['⇧', '⌘', 'F'],
-                  _toggleFavorite,
-                ),
-                const CommandSeparator(
-                  color: _separator,
-                  height: 0.5,
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                ),
-                _action('Copy Deeplink', Icons.content_paste_outlined, const [
-                  '⇧',
-                  '⌘',
-                  'C',
-                ], () => _copy(entry?.deeplink ?? '')),
-                const CommandSeparator(
-                  color: _separator,
-                  height: 0.5,
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                ),
-                _action(
-                  'Copy Name',
-                  Icons.copy_outlined,
-                  const [],
-                  () => _copy(_selectedValue),
-                ),
-              ],
+                  _action(
+                    entry?.application == true
+                        ? 'Open Application'
+                        : 'Open Command',
+                    Icons.article_outlined,
+                    const ['↵'],
+                    _activateSelected,
+                  ),
+                  const CommandSeparator(
+                    color: _separator,
+                    height: 0.5,
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                  ),
+                  _action(
+                    _favorites.contains(_selectedValue)
+                        ? 'Remove from Favorites'
+                        : 'Add to Favorites',
+                    Icons.star_border_rounded,
+                    const ['⇧', '⌘', 'F'],
+                    _toggleFavorite,
+                  ),
+                  const CommandSeparator(
+                    color: _separator,
+                    height: 0.5,
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                  ),
+                  _action('Copy Deeplink', Icons.content_paste_outlined, const [
+                    '⇧',
+                    '⌘',
+                    'C',
+                  ], () => _copy(entry?.deeplink ?? '')),
+                  const CommandSeparator(
+                    color: _separator,
+                    height: 0.5,
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                  ),
+                  _action(
+                    'Copy Name',
+                    Icons.copy_outlined,
+                    const [],
+                    () => _copy(_selectedValue),
+                  ),
+                ],
+              ),
             ),
           ),
-          CommandInput(
-            focusNode: _actionsInputFocusNode,
-            placeholder: 'Search for actions…',
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: _separator, width: 0.5)),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CommandInput(
+              focusNode: _actionsInputFocusNode,
+              placeholder: 'Search for actions…',
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              style: const TextStyle(fontSize: 14, color: _primary),
+              placeholderStyle: const TextStyle(fontSize: 14, color: _muted),
+              cursorColor: _primary,
+              keyboardAppearance: Brightness.dark,
             ),
-            style: const TextStyle(fontSize: 14, color: _primary),
-            placeholderStyle: const TextStyle(fontSize: 14, color: _muted),
-            cursorColor: _primary,
-            keyboardAppearance: Brightness.dark,
           ),
         ],
       ),
@@ -1142,73 +1171,147 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
   );
 }
 
-/// Masks the full-height list beneath the overlaid input and footer. The ramps
-/// extend deep under the input and footer overlays while preserving readability
-/// by reaching full opacity right as items enter the active viewport.
-class _ScrollEdgeFade extends StatelessWidget {
-  const _ScrollEdgeFade({
-    required this.topInset,
-    required this.bottomInset,
+/// Masks a scrollable list beneath overlaid headers and footers. The ramps
+/// extend under the overlays while preserving readability by reaching full opacity
+/// right as items enter the active viewport.
+class ScrollEdgeFade extends StatelessWidget {
+  const ScrollEdgeFade({
+    super.key,
+    this.topInset = 0,
+    this.bottomInset = 0,
+    this.topRamp,
+    this.bottomRamp,
+    this.topOvershoot,
+    this.bottomOvershoot,
+    this.topFade,
+    this.bottomFade,
+    this.topEnabled = true,
+    this.bottomEnabled = true,
+    this.topMaskKey,
+    this.bottomMaskKey,
     required this.child,
   });
 
   final double topInset;
   final double bottomInset;
+  final double? topRamp;
+  final double? bottomRamp;
+  final double? topOvershoot;
+  final double? bottomOvershoot;
+  final EasingLinearGradient? topFade;
+  final EasingLinearGradient? bottomFade;
+  final bool topEnabled;
+  final bool bottomEnabled;
+  final Key? topMaskKey;
+  final Key? bottomMaskKey;
   final Widget child;
-  static const _topRamp = 82.0;
-  static const _topOvershoot = 12.0;
-  static const _bottomRamp = 48.0;
 
-  // Sample once; painting only creates shaders for the current list bounds.
-  // Multi-stop eased gradient for top edge: extends a longer, deeper transition zone
-  // behind the input so items dissolve softly and gradually across the glass header.
-  static final _topFade = EasingLinearGradient(
+  static const _defaultTopRamp = 82.0;
+  static const _defaultTopOvershoot = 12.0;
+  static const _defaultBottomRamp = 48.0;
+
+  // Multi-stop eased gradient for standard top edge (e.g. main palette header):
+  // extends a longer, deeper transition zone behind the input.
+  static final _defaultTopFade = EasingLinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: const [Color(0x00FFFFFF), Color(0x00FFFFFF), Color(0xFFFFFFFF)],
     stops: const [0.0, 0.35, 1.0],
     curve: Curves.easeInCubic,
   );
+
+  // Compact eased gradient for smaller top insets (e.g. action menu title):
+  // smooth 2-color ease-in ramp across the compact header.
+  static final _compactTopFade = EasingLinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: const [Color(0x00FFFFFF), Color(0xFFFFFFFF)],
+    curve: Curves.easeInCubic,
+  );
+
   // Multi-stop eased gradient for bottom edge: retains full legibility until
-  // reaching near the very bottom edge of the panel, then dissolves cleanly.
-  static final _bottomFade = EasingLinearGradient(
+  // reaching near the overlay/panel boundary, then dissolves cleanly.
+  static final _defaultBottomFade = EasingLinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: const [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
     curve: Curves.easeOutCubic,
   );
 
+  double get effectiveTopRamp =>
+      topRamp ??
+      (topInset > 0
+          ? (topInset < 40 ? topInset + 12.0 : _defaultTopRamp)
+          : _defaultTopRamp);
+
+  double get effectiveTopOvershoot =>
+      topOvershoot ?? (topInset < 40 ? 6.0 : _defaultTopOvershoot);
+
+  double get effectiveBottomRamp =>
+      bottomRamp ??
+      (bottomInset > 0
+          ? (bottomInset < 40 ? bottomInset + 8.0 : _defaultBottomRamp)
+          : _defaultBottomRamp);
+
+  double get effectiveBottomOvershoot =>
+      bottomOvershoot ??
+      (bottomInset > 0
+          ? math.max(0.0, effectiveBottomRamp - bottomInset)
+          : 0.0);
+
+  EasingLinearGradient get effectiveTopFade =>
+      topFade ??
+      (topInset > 0 && topInset < 40 ? _compactTopFade : _defaultTopFade);
+
+  EasingLinearGradient get effectiveBottomFade =>
+      bottomFade ?? _defaultBottomFade;
+
   @override
   Widget build(BuildContext context) {
     // Keep overlay content clear in high contrast, with effectively hard edges.
     if (MediaQuery.highContrastOf(context)) return child;
 
-    return ShaderMask(
-      key: const ValueKey('liquid-glass-input-edge-fade'),
-      blendMode: BlendMode.dstIn,
-      shaderCallback: (bounds) => _topFade.createShader(
-        Rect.fromLTWH(
-          bounds.left,
-          bounds.top + topInset - _topRamp + _topOvershoot,
-          bounds.width,
-          _topRamp,
-        ),
-      ),
-      child: ShaderMask(
-        key: const ValueKey('liquid-glass-bottom-edge-fade'),
+    final hasTop = topEnabled && (topInset > 0 || topRamp != null);
+    final hasBottom = bottomEnabled && (bottomInset > 0 || bottomRamp != null);
+
+    if (!hasTop && !hasBottom) return child;
+
+    Widget content = child;
+
+    if (hasBottom) {
+      final ramp = effectiveBottomRamp;
+      final overshoot = effectiveBottomOvershoot;
+      content = ShaderMask(
+        key: bottomMaskKey ?? const ValueKey('liquid-glass-bottom-edge-fade'),
         blendMode: BlendMode.dstIn,
         shaderCallback: (bounds) {
-          return _bottomFade.createShader(
-            Rect.fromLTWH(
-              bounds.left,
-              bounds.bottom - _bottomRamp,
-              bounds.width,
-              _bottomRamp,
-            ),
+          final top = bounds.bottom - bottomInset - overshoot;
+          return effectiveBottomFade.createShader(
+            Rect.fromLTWH(bounds.left, top, bounds.width, ramp),
           );
         },
-        child: child,
-      ),
-    );
+        child: content,
+      );
+    }
+
+    if (hasTop) {
+      final ramp = effectiveTopRamp;
+      final overshoot = effectiveTopOvershoot;
+      content = ShaderMask(
+        key: topMaskKey ?? const ValueKey('liquid-glass-input-edge-fade'),
+        blendMode: BlendMode.dstIn,
+        shaderCallback: (bounds) => effectiveTopFade.createShader(
+          Rect.fromLTWH(
+            bounds.left,
+            bounds.top + topInset - ramp + overshoot,
+            bounds.width,
+            ramp,
+          ),
+        ),
+        child: content,
+      );
+    }
+
+    return content;
   }
 }

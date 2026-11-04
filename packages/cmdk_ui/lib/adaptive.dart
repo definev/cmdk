@@ -134,7 +134,7 @@ class AdaptiveCommandInput extends StatefulWidget {
   /// Cursor color. Defaults to the platform's primary color.
   final Color? cursorColor;
 
-  /// Cursor width. Defaults to 2.0.
+  /// Cursor width. Defaults to 1.5.
   final double? cursorWidth;
 
   /// Optional cursor height.
@@ -518,7 +518,7 @@ class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
         style: widget.style,
         placeholderStyle: effectivePlaceholderStyle,
         cursorColor: effectiveCursorColor,
-        cursorWidth: widget.cursorWidth ?? 2.0,
+        cursorWidth: widget.cursorWidth ?? 1.5,
         cursorHeight: widget.cursorHeight,
         cursorRadius: widget.cursorRadius,
         cursorOpacityAnimates: widget.cursorOpacityAnimates,
@@ -557,6 +557,3 @@ class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
     return input;
   }
 }
-
-/// An alias for [AdaptiveCommandInput].
-typedef CommandAdaptiveInput = AdaptiveCommandInput;

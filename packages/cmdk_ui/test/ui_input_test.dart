@@ -620,7 +620,7 @@ void main() {
             command,
             CommandInput(
               cursorColor: const Color(0xFF000000),
-              cursorWidth: 2.0,
+              cursorWidth: 1.5,
               editorBuilder: materialCommandInputBuilder(
                 cursorColor: const Color(0xFFFF0000),
                 cursorWidth: 6.0,
@@ -658,7 +658,7 @@ void main() {
             command,
             CommandInput(
               cursorColor: const Color(0xFF000000),
-              cursorWidth: 2.0,
+              cursorWidth: 1.5,
               editorBuilder: cupertinoCommandInputBuilder(
                 cursorColor: const Color(0xFF00FF00),
                 cursorWidth: 4.5,
@@ -696,7 +696,7 @@ void main() {
             command,
             CommandInput(
               cursorColor: const Color(0xFF000000),
-              cursorWidth: 2.0,
+              cursorWidth: 1.5,
               editorBuilder: defaultCommandInputEditorBuilder(
                 cursorColor: const Color(0xFF0000FF),
                 cursorWidth: 7.0,
