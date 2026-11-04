@@ -36,6 +36,7 @@ class CommandInputEditor {
     required this.smartQuotesType,
     required this.keyboardAppearance,
     required this.scrollPadding,
+    this.contextMenuBuilder,
   });
 
   final TextEditingController controller;
@@ -58,6 +59,9 @@ class CommandInputEditor {
   final SmartQuotesType smartQuotesType;
   final Brightness? keyboardAppearance;
   final EdgeInsets scrollPadding;
+
+  /// Optional text selection menu override for the editor.
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
 }
 
 /// Creates a default widgets-only editor builder using Flutter's core [EditableText].
@@ -77,6 +81,7 @@ CommandInputEditorBuilder defaultCommandInputEditorBuilder({
   TextStyle? style,
   Brightness? keyboardAppearance,
   EdgeInsets? scrollPadding,
+  EditableTextContextMenuBuilder? contextMenuBuilder,
 }) =>
     (BuildContext context, CommandInputEditor editor) => EditableText(
       controller: editor.controller,
@@ -84,6 +89,9 @@ CommandInputEditorBuilder defaultCommandInputEditorBuilder({
       autofocus: editor.autofocus,
       style: style ?? editor.style,
       cursorColor: cursorColor ?? editor.cursorColor,
+      selectionColor: (cursorColor ?? editor.cursorColor).withValues(
+        alpha: 0.4,
+      ),
       backgroundCursorColor:
           backgroundCursorColor ?? editor.backgroundCursorColor,
       cursorWidth: cursorWidth ?? editor.cursorWidth,
@@ -104,6 +112,7 @@ CommandInputEditorBuilder defaultCommandInputEditorBuilder({
       scrollPadding: scrollPadding ?? editor.scrollPadding,
       onEditingComplete: editor.onEditingComplete,
       onSubmitted: editor.onSubmitted,
+      contextMenuBuilder: contextMenuBuilder ?? editor.contextMenuBuilder,
     );
 
 /// A completely headless, unstyled search input for the command menu.
@@ -133,6 +142,7 @@ class CommandInput extends StatefulWidget {
     this.suffix,
     this.onKeyEvent,
     this.editorBuilder,
+    this.contextMenuBuilder,
     this.autocorrect = false,
     this.enableSuggestions = true,
     this.textCapitalization = TextCapitalization.none,
@@ -209,6 +219,11 @@ class CommandInput extends StatefulWidget {
   /// [materialCommandInputBuilder] or [cupertinoCommandInputBuilder] from the
   /// corresponding optional library, or supply a native editor builder of your own.
   final CommandInputEditorBuilder? editorBuilder;
+
+  /// Builds the text selection menu. When omitted, the active editor keeps its
+  /// default menu behavior. Custom [editorBuilder] implementations should pass
+  /// [CommandInputEditor.contextMenuBuilder] to their text field.
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
 
   /// Whether the keyboard may automatically correct command names.
   final bool autocorrect;
@@ -445,17 +460,28 @@ class _CommandInputState extends State<CommandInput> {
       smartQuotesType: widget.smartQuotesType,
       keyboardAppearance: widget.keyboardAppearance,
       scrollPadding: widget.scrollPadding,
+      contextMenuBuilder: widget.contextMenuBuilder,
     );
 
     Widget inputArea = Stack(
       alignment: Alignment.centerLeft,
       children: [
+        // The editor owns input geometry. A placeholder may inherit different
+        // line metrics or wrap, but must not resize the field when it disappears.
         if (isEmpty)
-          widget.placeholderWidget ??
-              Text(
-                widget.placeholder,
-                style: effectivePlaceholderStyle,
-              ),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child:
+                  widget.placeholderWidget ??
+                  Text(
+                    widget.placeholder,
+                    style: effectivePlaceholderStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+            ),
+          ),
         CommandInputKeyboardScope(
           controller: _commandController!,
           textController: _textController,

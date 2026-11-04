@@ -5,6 +5,8 @@ import 'package:example/clones/raycast.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart'
+    show MaterialApp, Material, ThemeData;
 
 final _mainInput = find.byWidgetPredicate(
   (widget) =>
@@ -24,7 +26,9 @@ Future<void> _mount(
   Future<List<String>> Function(String)? search,
   ValueChanged<String>? onSelect,
   bool reduceMotion = false,
+  bool themed = false,
 }) async {
+  final palette = RaycastCMDK(search: search, onCommandSelect: onSelect);
   await tester.pumpWidget(
     MediaQuery(
       data: MediaQueryData(disableAnimations: reduceMotion),
@@ -34,7 +38,12 @@ Future<void> _mount(
           child: Center(
             child: SizedBox(
               width: 640,
-              child: RaycastCMDK(search: search, onCommandSelect: onSelect),
+              child: themed
+                  ? MaterialApp(
+                      theme: ThemeData.dark(),
+                      home: Material(child: Center(child: palette)),
+                    )
+                  : palette,
             ),
           ),
         ),
@@ -52,6 +61,33 @@ Future<void> _toggleActions(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('input geometry stays stable while typing and clearing search', (
+    tester,
+  ) async {
+    final response = Completer<List<String>>();
+    await _mount(tester, search: (_) => response.future, themed: true);
+    final input = find.byType(CommandInput).first;
+    final initialInput = tester.getRect(input);
+    final initialEditor = tester.getRect(_mainInput);
+    final initialPalette = tester.getRect(find.byType(RaycastCMDK));
+    final initialList = tester.getRect(find.byType(CommandList).first);
+
+    await tester.enterText(_mainInput, 'S');
+    await tester.pump();
+    expect(tester.getRect(input), initialInput);
+    expect(tester.getRect(_mainInput), initialEditor);
+    expect(tester.getRect(find.byType(RaycastCMDK)), initialPalette);
+    expect(tester.getRect(find.byType(CommandList).first), initialList);
+    await tester.pump(const Duration(milliseconds: 200));
+    response.complete(['Slack']);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(input), initialInput);
+    await tester.enterText(_mainInput, '');
+    await tester.pumpAndSettle();
+    expect(tester.getRect(input), initialInput);
+    expect(tester.getRect(_mainInput), initialEditor);
+  });
+
   testWidgets('pending uses the red gradient and locks stale activation', (
     tester,
   ) async {

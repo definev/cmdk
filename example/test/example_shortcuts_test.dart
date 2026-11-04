@@ -401,6 +401,7 @@ void main() {
         final positionedFinder = find.byWidgetPredicate(
           (w) =>
               w is Positioned &&
+              w.top == null &&
               w.bottom == 0.0 &&
               w.left == 0.0 &&
               w.right == 0.0,

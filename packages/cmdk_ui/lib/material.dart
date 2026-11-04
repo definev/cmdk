@@ -16,33 +16,43 @@ CommandInputEditorBuilder materialCommandInputBuilder({
   TextStyle? style,
   Brightness? keyboardAppearance,
   EdgeInsets? scrollPadding,
+  EditableTextContextMenuBuilder? contextMenuBuilder,
 }) =>
     (BuildContext context, CommandInputEditor editor) => Material(
       type: MaterialType.transparency,
-      child: TextField(
-        controller: editor.controller,
-        focusNode: editor.focusNode,
-        autofocus: editor.autofocus,
-        decoration: null,
-        style: style ?? editor.style,
-        cursorColor: cursorColor ?? editor.cursorColor,
-        cursorWidth: cursorWidth ?? editor.cursorWidth,
-        cursorHeight: cursorHeight ?? editor.cursorHeight,
-        cursorRadius: cursorRadius ?? editor.cursorRadius,
-        cursorOpacityAnimates:
-            cursorOpacityAnimates ?? editor.cursorOpacityAnimates,
-        showCursor: showCursor ?? editor.showCursor,
-        keyboardType: TextInputType.text,
-        textInputAction: TextInputAction.search,
-        autocorrect: editor.autocorrect,
-        enableSuggestions: editor.enableSuggestions,
-        textCapitalization: editor.textCapitalization,
-        smartDashesType: editor.smartDashesType,
-        smartQuotesType: editor.smartQuotesType,
-        keyboardAppearance: keyboardAppearance ?? editor.keyboardAppearance,
-        scrollPadding: scrollPadding ?? editor.scrollPadding,
-        onEditingComplete: editor.onEditingComplete,
-        onSubmitted: editor.onSubmitted,
+      child: DefaultSelectionStyle(
+        selectionColor: (cursorColor ?? editor.cursorColor).withValues(
+          alpha: 0.4,
+        ),
+        child: TextField(
+          controller: editor.controller,
+          focusNode: editor.focusNode,
+          autofocus: editor.autofocus,
+          decoration: null,
+          style: style ?? editor.style,
+          cursorColor: cursorColor ?? editor.cursorColor,
+          cursorWidth: cursorWidth ?? editor.cursorWidth,
+          cursorHeight: cursorHeight ?? editor.cursorHeight,
+          cursorRadius: cursorRadius ?? editor.cursorRadius,
+          cursorOpacityAnimates:
+              cursorOpacityAnimates ?? editor.cursorOpacityAnimates,
+          showCursor: showCursor ?? editor.showCursor,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.search,
+          autocorrect: editor.autocorrect,
+          enableSuggestions: editor.enableSuggestions,
+          textCapitalization: editor.textCapitalization,
+          smartDashesType: editor.smartDashesType,
+          smartQuotesType: editor.smartQuotesType,
+          keyboardAppearance: keyboardAppearance ?? editor.keyboardAppearance,
+          scrollPadding: scrollPadding ?? editor.scrollPadding,
+          onEditingComplete: editor.onEditingComplete,
+          onSubmitted: editor.onSubmitted,
+          contextMenuBuilder:
+              contextMenuBuilder ??
+              editor.contextMenuBuilder ??
+              const TextField().contextMenuBuilder,
+        ),
       ),
     );
 

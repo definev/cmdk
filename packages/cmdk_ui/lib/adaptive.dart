@@ -3,7 +3,6 @@ library;
 
 import 'package:cmdk/cmdk.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' as cupertino;
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart' as material;
@@ -22,6 +21,7 @@ CommandInputEditorBuilder adaptiveCommandInputBuilder({
   TextStyle? style,
   Brightness? keyboardAppearance,
   EdgeInsets? scrollPadding,
+  EditableTextContextMenuBuilder? contextMenuBuilder,
 }) => (BuildContext context, CommandInputEditor editor) {
   final platform = material.Theme.of(context).platform;
   final isApple =
@@ -37,6 +37,7 @@ CommandInputEditorBuilder adaptiveCommandInputBuilder({
       style: style,
       keyboardAppearance: keyboardAppearance,
       scrollPadding: scrollPadding,
+      contextMenuBuilder: contextMenuBuilder,
     )(context, editor);
   } else {
     return materialCommandInputBuilder(
@@ -49,6 +50,7 @@ CommandInputEditorBuilder adaptiveCommandInputBuilder({
       style: style,
       keyboardAppearance: keyboardAppearance,
       scrollPadding: scrollPadding,
+      contextMenuBuilder: contextMenuBuilder,
     )(context, editor);
   }
 };
@@ -56,16 +58,14 @@ CommandInputEditorBuilder adaptiveCommandInputBuilder({
 /// An adaptive, platform-aware search input for mobile and desktop [Command] menus.
 ///
 /// Automatically switches between iOS/macOS Cupertino conventions (Cupertino text field,
-/// selection handles, clear button, magnifier) and Android/Material conventions
-/// (Material text field, ripple clear button, theme typography).
+/// selection handles and magnifier) and Android/Material conventions
+/// (Material text field and theme typography).
 ///
 /// Features built-in:
 /// - Native text editing engine with selection magnifier and clipboard actions
-/// - Adaptive reactive clear button (shows when query is not empty)
-/// - Optional cancel button for modal search presentations
 /// - Mobile touch target sizing (default 44px min height)
 /// - Adaptive filled/unfilled styling with system fill colors
-class AdaptiveCommandInput extends StatefulWidget {
+class AdaptiveCommandInput extends StatelessWidget {
   const AdaptiveCommandInput({
     super.key,
     this.controller,
@@ -89,15 +89,9 @@ class AdaptiveCommandInput extends StatefulWidget {
     this.borderRadius,
     this.prefix,
     this.suffix,
-    this.showClearButton = true,
-    this.clearIcon,
-    this.clearButtonColor,
-    this.showCancelButton = false,
-    this.cancelButtonLabel = 'Cancel',
-    this.cancelButtonStyle,
-    this.onCancel,
     this.onKeyEvent,
     this.editorBuilder,
+    this.contextMenuBuilder,
     this.autocorrect = false,
     this.enableSuggestions = true,
     this.textCapitalization = TextCapitalization.none,
@@ -173,32 +167,17 @@ class AdaptiveCommandInput extends StatefulWidget {
   /// Custom suffix widget placed to the right of the text input.
   final Widget? suffix;
 
-  /// Whether to automatically show an adaptive clear button when text is non-empty.
-  final bool showClearButton;
-
-  /// Custom icon data for the clear button.
-  final IconData? clearIcon;
-
-  /// Color for the clear button icon.
-  final Color? clearButtonColor;
-
-  /// Whether to display a trailing cancel button (common in iOS modal search).
-  final bool showCancelButton;
-
-  /// Label for the cancel button. Defaults to 'Cancel'.
-  final String cancelButtonLabel;
-
-  /// Style for the cancel button text.
-  final TextStyle? cancelButtonStyle;
-
-  /// Callback when the cancel button is tapped.
-  final VoidCallback? onCancel;
-
   /// Key event interceptor.
   final FocusOnKeyEventCallback? onKeyEvent;
 
   /// Custom editor builder override.
   final CommandInputEditorBuilder? editorBuilder;
+
+  /// Builds the text selection menu. When omitted, uses the platform editor's
+  /// default menu, including the system menu where supported.
+  /// Custom [editorBuilder] implementations receive this through
+  /// [CommandInputEditor.contextMenuBuilder].
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
 
   /// Whether the keyboard may automatically correct text.
   final bool autocorrect;
@@ -230,89 +209,8 @@ class AdaptiveCommandInput extends StatefulWidget {
   /// Minimum height to ensure touch target accessibility. Defaults to 44.0.
   final double minHeight;
 
-  @override
-  State<AdaptiveCommandInput> createState() => _AdaptiveCommandInputState();
-}
-
-class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
-  TextEditingController? _internalController;
-  TextEditingController get _effectiveController =>
-      widget.controller ?? _internalController!;
-
-  bool _hasText = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.controller == null) {
-      _internalController = TextEditingController();
-    }
-    _hasText = _effectiveController.text.isNotEmpty;
-    _effectiveController.addListener(_onTextChanged);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _hasText = _effectiveController.text.isNotEmpty;
-  }
-
-  @override
-  void didUpdateWidget(AdaptiveCommandInput oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      if (oldWidget.controller == null) {
-        _effectiveController.removeListener(_onTextChanged);
-        _internalController?.dispose();
-        _internalController = null;
-      } else {
-        oldWidget.controller!.removeListener(_onTextChanged);
-      }
-
-      if (widget.controller == null) {
-        _internalController = TextEditingController();
-      }
-      _effectiveController.addListener(_onTextChanged);
-      _hasText = _effectiveController.text.isNotEmpty;
-    }
-  }
-
-  @override
-  void dispose() {
-    if (widget.controller == null) {
-      _effectiveController.removeListener(_onTextChanged);
-      _internalController?.dispose();
-    } else {
-      widget.controller!.removeListener(_onTextChanged);
-    }
-    super.dispose();
-  }
-
-  void _onTextChanged() {
-    final hasText = _effectiveController.text.isNotEmpty;
-    if (_hasText != hasText) {
-      _hasText = hasText;
-      if (!mounted) return;
-      final phase = SchedulerBinding.instance.schedulerPhase;
-      final isBuilding =
-          phase == SchedulerPhase.persistentCallbacks ||
-          phase == SchedulerPhase.midFrameMicrotasks;
-      if (isBuilding) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() {});
-        });
-      } else {
-        setState(() {});
-      }
-    }
-  }
-
-  void _clearText() {
-    _effectiveController.clear();
-  }
-
   TargetPlatform _resolvePlatform(BuildContext context) {
-    if (widget.platform != null) return widget.platform!;
+    if (platform != null) return platform!;
     return material.Theme.of(context).platform;
   }
 
@@ -329,7 +227,7 @@ class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
   }
 
   Color _resolveCursorColor(bool isApple, BuildContext context) {
-    if (widget.cursorColor != null) return widget.cursorColor!;
+    if (cursorColor != null) return cursorColor!;
     if (isApple) {
       final cupertinoTheme = cupertino.CupertinoTheme.of(context);
       return cupertinoTheme.primaryColor;
@@ -344,7 +242,7 @@ class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
     bool isDark,
     BuildContext context,
   ) {
-    if (widget.placeholderStyle != null) return widget.placeholderStyle;
+    if (placeholderStyle != null) return placeholderStyle;
     if (isApple) {
       return TextStyle(
         color: isDark ? const Color(0x99EBEBF5) : const Color(0x993C3C43),
@@ -356,49 +254,28 @@ class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
     }
   }
 
-  Color _resolveMutedColor(bool isApple, bool isDark, BuildContext context) {
-    if (isApple) {
-      return isDark ? const Color(0x99EBEBF5) : const Color(0x993C3C43);
-    } else {
-      final theme = material.Theme.of(context);
-      return theme.colorScheme.onSurfaceVariant;
-    }
-  }
-
   Decoration? _resolveDecoration(
     bool isApple,
     bool isDark,
     BuildContext context,
   ) {
-    if (widget.decoration != null) return widget.decoration;
-    if (!widget.filled) return null;
+    if (decoration != null) return decoration;
+    if (!filled) return null;
 
-    if (widget.fillColor != null) {
-      return BoxDecoration(
-        color: widget.fillColor,
-        borderRadius:
-            widget.borderRadius ?? BorderRadius.circular(isApple ? 10.0 : 12.0),
-      );
-    }
-
-    if (isApple) {
-      return BoxDecoration(
-        color: isDark ? const Color(0x3D767680) : const Color(0x1F767680),
-        borderRadius: widget.borderRadius ?? BorderRadius.circular(10.0),
-      );
-    } else {
-      final theme = material.Theme.of(context);
-      final color = theme.colorScheme.surfaceContainerHighest;
-      return BoxDecoration(
-        color: color,
-        borderRadius: widget.borderRadius ?? BorderRadius.circular(12.0),
-      );
-    }
+    return BoxDecoration(
+      color:
+          fillColor ??
+          (isApple
+              ? (isDark ? const Color(0x3D767680) : const Color(0x1F767680))
+              : material.Theme.of(context).colorScheme.surfaceContainerHighest),
+      borderRadius:
+          borderRadius ?? BorderRadius.circular(isApple ? 10.0 : 12.0),
+    );
   }
 
   EdgeInsetsGeometry _resolvePadding(bool isApple) {
-    if (widget.padding != null) return widget.padding!;
-    if (widget.filled) {
+    if (padding != null) return padding!;
+    if (filled) {
       return EdgeInsets.symmetric(
         horizontal: 8.0,
         vertical: isApple ? 7.0 : 6.0,
@@ -407,153 +284,84 @@ class _AdaptiveCommandInputState extends State<AdaptiveCommandInput> {
     return const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0);
   }
 
-  Widget? _buildSuffix(bool isApple, Color mutedColor) {
-    if (widget.suffix != null) return widget.suffix;
-    if (!widget.showClearButton || !_hasText) return null;
-
-    final color = widget.clearButtonColor ?? mutedColor;
-    if (isApple) {
-      return cupertino.CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0),
-        minimumSize: const Size.square(32.0),
-        onPressed: _clearText,
-        child: Icon(
-          widget.clearIcon ?? cupertino.CupertinoIcons.clear_thick_circled,
-          size: 16.0,
-          color: color,
-        ),
-      );
-    } else {
-      return material.InkResponse(
-        canRequestFocus: false,
-        radius: 18.0,
-        onTap: _clearText,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-          child: Icon(
-            widget.clearIcon ?? material.Icons.cancel,
-            size: 18.0,
-            color: color,
-          ),
-        ),
-      );
-    }
-  }
-
-  Widget? _buildCancelButton(bool isApple) {
-    if (!widget.showCancelButton) return null;
-
-    if (isApple) {
-      return cupertino.CupertinoButton(
-        padding: const EdgeInsets.only(left: 8.0, right: 4.0),
-        minimumSize: const Size.square(36.0),
-        onPressed: widget.onCancel,
-        child: Text(
-          widget.cancelButtonLabel,
-          style: widget.cancelButtonStyle,
-        ),
-      );
-    } else {
-      return material.TextButton(
-        onPressed: widget.onCancel,
-        style: widget.cancelButtonStyle != null
-            ? material.TextButton.styleFrom(textStyle: widget.cancelButtonStyle)
-            : null,
-        child: Text(widget.cancelButtonLabel),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final platform = _resolvePlatform(context);
     final isApple = _isApplePlatform(platform);
     final isDark = _isDarkMode(platform, context);
-    final mutedColor = _resolveMutedColor(isApple, isDark, context);
 
-    final suffixWidget = _buildSuffix(isApple, mutedColor);
-    final effectiveDecoration = _resolveDecoration(isApple, isDark, context);
-    final effectivePadding = _resolvePadding(isApple);
     final effectiveCursorColor = _resolveCursorColor(isApple, context);
+    final effectiveDecoration = _resolveDecoration(
+      isApple,
+      isDark,
+      context,
+    );
+    final effectivePadding = _resolvePadding(isApple);
     final effectivePlaceholderStyle = _resolvePlaceholderStyle(
       isApple,
       isDark,
       context,
     );
 
-    final editorBuilder =
-        widget.editorBuilder ??
+    final effectiveEditorBuilder =
+        editorBuilder ??
         (isApple
             ? cupertinoCommandInputBuilder(
                 cursorColor: effectiveCursorColor,
-                cursorWidth: widget.cursorWidth,
-                cursorHeight: widget.cursorHeight,
-                cursorRadius: widget.cursorRadius,
-                cursorOpacityAnimates: widget.cursorOpacityAnimates,
-                showCursor: widget.showCursor,
-                style: widget.style,
-                keyboardAppearance: widget.keyboardAppearance,
-                scrollPadding: widget.scrollPadding,
+                cursorWidth: cursorWidth,
+                cursorHeight: cursorHeight,
+                cursorRadius: cursorRadius,
+                cursorOpacityAnimates: cursorOpacityAnimates,
+                showCursor: showCursor,
+                style: style,
+                keyboardAppearance: keyboardAppearance,
+                scrollPadding: scrollPadding,
               )
             : materialCommandInputBuilder(
                 cursorColor: effectiveCursorColor,
-                cursorWidth: widget.cursorWidth,
-                cursorHeight: widget.cursorHeight,
-                cursorRadius: widget.cursorRadius,
-                cursorOpacityAnimates: widget.cursorOpacityAnimates,
-                showCursor: widget.showCursor,
-                style: widget.style,
-                keyboardAppearance: widget.keyboardAppearance,
-                scrollPadding: widget.scrollPadding,
+                cursorWidth: cursorWidth,
+                cursorHeight: cursorHeight,
+                cursorRadius: cursorRadius,
+                cursorOpacityAnimates: cursorOpacityAnimates,
+                showCursor: showCursor,
+                style: style,
+                keyboardAppearance: keyboardAppearance,
+                scrollPadding: scrollPadding,
               ));
 
-    Widget input = ConstrainedBox(
-      constraints: BoxConstraints(minHeight: widget.minHeight),
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
       child: CommandInput(
-        controller: _effectiveController,
-        focusNode: widget.focusNode,
-        autofocus: widget.autofocus,
-        placeholder: widget.placeholder,
-        placeholderWidget: widget.placeholderWidget,
-        style: widget.style,
+        controller: controller,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        placeholder: placeholder,
+        placeholderWidget: placeholderWidget,
+        style: style,
         placeholderStyle: effectivePlaceholderStyle,
         cursorColor: effectiveCursorColor,
-        cursorWidth: widget.cursorWidth ?? 1.5,
-        cursorHeight: widget.cursorHeight,
-        cursorRadius: widget.cursorRadius,
-        cursorOpacityAnimates: widget.cursorOpacityAnimates,
-        showCursor: widget.showCursor,
-        onValueChange: widget.onValueChange,
+        cursorWidth: cursorWidth ?? 1.5,
+        cursorHeight: cursorHeight,
+        cursorRadius: cursorRadius,
+        cursorOpacityAnimates: cursorOpacityAnimates,
+        showCursor: showCursor,
+        onValueChange: onValueChange,
         padding: effectivePadding,
         decoration: effectiveDecoration,
-        prefix: widget.prefix,
-        suffix: suffixWidget,
-        onKeyEvent: widget.onKeyEvent,
-        editorBuilder: editorBuilder,
-        autocorrect: widget.autocorrect,
-        enableSuggestions: widget.enableSuggestions,
-        textCapitalization: widget.textCapitalization,
-        smartDashesType: widget.smartDashesType,
-        smartQuotesType: widget.smartQuotesType,
-        keyboardAppearance: widget.keyboardAppearance,
-        scrollPadding: widget.scrollPadding,
-        unfocusOnSubmit: widget.unfocusOnSubmit,
+        prefix: prefix,
+        suffix: suffix,
+        onKeyEvent: onKeyEvent,
+        editorBuilder: effectiveEditorBuilder,
+        contextMenuBuilder: contextMenuBuilder,
+        autocorrect: autocorrect,
+        enableSuggestions: enableSuggestions,
+        textCapitalization: textCapitalization,
+        smartDashesType: smartDashesType,
+        smartQuotesType: smartQuotesType,
+        keyboardAppearance: keyboardAppearance,
+        scrollPadding: scrollPadding,
+        unfocusOnSubmit: unfocusOnSubmit,
       ),
     );
-
-    if (widget.showCancelButton) {
-      final cancelButton = _buildCancelButton(isApple);
-      if (cancelButton != null) {
-        input = Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(child: input),
-            cancelButton,
-          ],
-        );
-      }
-    }
-
-    return input;
   }
 }

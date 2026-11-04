@@ -75,6 +75,50 @@ void main() {
       );
 
   group('headless editor', () {
+    for (final customPlaceholder in [false, true]) {
+      testHeadless(
+        'placeholder does not resize the editor (custom: $customPlaceholder)',
+        (tester) async {
+          final command = CommandController();
+          addTearDown(command.dispose);
+          await tester.pumpWidget(
+            _app(
+              DefaultTextStyle(
+                style: const TextStyle(fontSize: 20, height: 1.5),
+                child: _menu(
+                  command,
+                  CommandInput(
+                    placeholder: 'A long search placeholder ' * 10,
+                    placeholderWidget: customPlaceholder
+                        ? const SizedBox(height: 80, child: Text('Search'))
+                        : null,
+                    style: const TextStyle(fontSize: 15),
+                    placeholderStyle: const TextStyle(fontSize: 24),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          final field = find.byType(CommandInput);
+          final editor = find.byType(EditableText);
+          final fieldRect = tester.getRect(field);
+          final editorRect = tester.getRect(editor);
+          expect(fieldRect.height, editorRect.height);
+
+          await tester.enterText(editor, 'Search');
+          await tester.pump();
+          expect(tester.getRect(field), fieldRect);
+          expect(tester.getRect(editor), editorRect);
+          await tester.enterText(editor, '');
+          await tester.pump();
+          expect(tester.getRect(field), fieldRect);
+          expect(tester.getRect(editor), editorRect);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+
     testHeadless('command keyboard defaults and overrides reach the IME', (
       tester,
     ) async {

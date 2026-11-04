@@ -16,33 +16,43 @@ CommandInputEditorBuilder cupertinoCommandInputBuilder({
   TextStyle? style,
   Brightness? keyboardAppearance,
   EdgeInsets? scrollPadding,
+  EditableTextContextMenuBuilder? contextMenuBuilder,
 }) =>
-    (BuildContext context, CommandInputEditor editor) => CupertinoTextField(
-      controller: editor.controller,
-      focusNode: editor.focusNode,
-      autofocus: editor.autofocus,
-      decoration: null,
-      padding: EdgeInsets.zero,
-      style: style ?? editor.style,
-      cursorColor: cursorColor ?? editor.cursorColor,
-      cursorWidth: cursorWidth ?? editor.cursorWidth,
-      cursorHeight: cursorHeight ?? editor.cursorHeight,
-      cursorRadius:
-          cursorRadius ?? editor.cursorRadius ?? const Radius.circular(2.0),
-      cursorOpacityAnimates:
-          cursorOpacityAnimates ?? editor.cursorOpacityAnimates ?? true,
-      showCursor: showCursor ?? editor.showCursor,
-      keyboardType: TextInputType.text,
-      textInputAction: TextInputAction.search,
-      autocorrect: editor.autocorrect,
-      enableSuggestions: editor.enableSuggestions,
-      textCapitalization: editor.textCapitalization,
-      smartDashesType: editor.smartDashesType,
-      smartQuotesType: editor.smartQuotesType,
-      keyboardAppearance: keyboardAppearance ?? editor.keyboardAppearance,
-      scrollPadding: scrollPadding ?? editor.scrollPadding,
-      onEditingComplete: editor.onEditingComplete,
-      onSubmitted: editor.onSubmitted,
+    (BuildContext context, CommandInputEditor editor) => DefaultSelectionStyle(
+      selectionColor: (cursorColor ?? editor.cursorColor).withValues(
+        alpha: 0.4,
+      ),
+      child: CupertinoTextField(
+        controller: editor.controller,
+        focusNode: editor.focusNode,
+        autofocus: editor.autofocus,
+        decoration: null,
+        padding: EdgeInsets.zero,
+        style: style ?? editor.style,
+        cursorColor: cursorColor ?? editor.cursorColor,
+        cursorWidth: cursorWidth ?? editor.cursorWidth,
+        cursorHeight: cursorHeight ?? editor.cursorHeight,
+        cursorRadius:
+            cursorRadius ?? editor.cursorRadius ?? const Radius.circular(2.0),
+        cursorOpacityAnimates:
+            cursorOpacityAnimates ?? editor.cursorOpacityAnimates ?? true,
+        showCursor: showCursor ?? editor.showCursor,
+        keyboardType: TextInputType.text,
+        textInputAction: TextInputAction.search,
+        autocorrect: editor.autocorrect,
+        enableSuggestions: editor.enableSuggestions,
+        textCapitalization: editor.textCapitalization,
+        smartDashesType: editor.smartDashesType,
+        smartQuotesType: editor.smartQuotesType,
+        keyboardAppearance: keyboardAppearance ?? editor.keyboardAppearance,
+        scrollPadding: scrollPadding ?? editor.scrollPadding,
+        onEditingComplete: editor.onEditingComplete,
+        onSubmitted: editor.onSubmitted,
+        contextMenuBuilder:
+            contextMenuBuilder ??
+            editor.contextMenuBuilder ??
+            const CupertinoTextField().contextMenuBuilder,
+      ),
     );
 
 /// A [CommandScrollbarBuilder] that wraps the list with [CupertinoScrollbar].

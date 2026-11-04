@@ -9,6 +9,7 @@ import 'clones/liquid_glass.dart';
 import 'clones/raycast.dart';
 import 'clones/styler_variants.dart';
 import 'clones/vercel.dart';
+import 'command_dialog_examples.dart';
 
 void main() {
   runApp(const CmdkExampleApp());
@@ -175,10 +176,9 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
 
   @override
   Widget build(BuildContext context) {
-    return WidgetsApp(
+    return MaterialApp(
       color: const Color(0xFF0E0E10),
-      pageRouteBuilder: <T>(settings, builder) =>
-          PageRouteBuilder<T>(pageBuilder: (ctx, _, __) => builder(ctx)),
+      theme: ThemeData.dark().copyWith(splashFactory: NoSplash.splashFactory),
       shortcuts: <ShortcutActivator, Intent>{
         ...WidgetsApp.defaultShortcuts,
         const SingleActivator(LogicalKeyboardKey.arrowRight, meta: true):
@@ -205,80 +205,87 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
           },
         ),
       },
-      home: Container(
-        color: const Color(0xFF0E0E10),
-        margin: MediaQuery.viewInsetsOf(context),
-        child: Stack(
-          children: [
-            // 2. Atmospheric Multi-color Radial Glow
-            Positioned.fill(
-              child: CustomPaint(painter: _AtmosphericMeshPainter()),
-            ),
+      home: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          color: const Color(0xFF0E0E10),
+          margin: MediaQuery.viewInsetsOf(context),
+          child: Stack(
+            children: [
+              // 2. Atmospheric Multi-color Radial Glow
+              Positioned.fill(
+                child: CustomPaint(painter: _AtmosphericMeshPainter()),
+              ),
 
-            // 3. Main Foreground Content
-            Center(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0,
-                    vertical: 60.0,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 640.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Top Meta Header (Asymmetric Layout)
-                        _buildTopHeader(),
-                        const SizedBox(height: 36.0),
+              // 3. Main Foreground Content
+              Center(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 60.0,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 640.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Top Meta Header (Asymmetric Layout)
+                          _buildTopHeader(),
+                          const SizedBox(height: 36.0),
 
-                        // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
-                        SizedBox(
-                          height: 475.0,
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              switchInCurve: Curves.easeOut,
-                              switchOutCurve: Curves.easeIn,
-                              layoutBuilder: (currentChild, previousChildren) {
-                                return Stack(
-                                  alignment: Alignment.topCenter,
-                                  children: [
-                                    ...previousChildren,
-                                    if (currentChild != null) currentChild,
-                                  ],
-                                );
-                              },
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: ScaleTransition(
-                                    scale: Tween<double>(
-                                      begin: 0.98,
-                                      end: 1.0,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: _buildCurrentPalette(),
+                          // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
+                          SizedBox(
+                            height: 475.0,
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeIn,
+                                layoutBuilder:
+                                    (currentChild, previousChildren) {
+                                      return Stack(
+                                        alignment: Alignment.topCenter,
+                                        children: [
+                                          ...previousChildren,
+                                          if (currentChild != null)
+                                            currentChild,
+                                        ],
+                                      );
+                                    },
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: Tween<double>(
+                                        begin: 0.98,
+                                        end: 1.0,
+                                      ).animate(animation),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: _buildCurrentPalette(),
+                              ),
                             ),
                           ),
-                        ),
 
-                        // Bottom Theme Switcher Dock with Sliding Pill
-                        Center(child: _buildThemeSwitcherDock()),
+                          // Bottom Theme Switcher Dock with Sliding Pill
+                          Center(child: _buildThemeSwitcherDock()),
 
-                        const SizedBox(height: 24.0),
-                      ],
+                          const SizedBox(height: 24.0),
+                          const CommandDialogExamples(),
+                          const SizedBox(height: 24.0),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

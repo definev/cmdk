@@ -45,130 +45,44 @@ void main() {
       expect(find.byIcon(material.Icons.search), findsNothing);
     });
 
-    testWidgets(
-      'clear button appears when text is entered and clears on tap (iOS)',
-      (
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      testWidgets('editing adds no clear or cancel controls ($platform)', (
         tester,
       ) async {
         final controller = CommandController();
+        final input = Command(
+          controller: controller,
+          child: AdaptiveCommandInput(platform: platform),
+        );
         await tester.pumpWidget(
-          cupertino.CupertinoApp(
-            home: cupertino.CupertinoPageScaffold(
-              child: Command(
-                controller: controller,
-                child: const AdaptiveCommandInput(
-                  platform: TargetPlatform.iOS,
+          platform == TargetPlatform.iOS
+              ? cupertino.CupertinoApp(
+                  home: cupertino.CupertinoPageScaffold(child: input),
+                )
+              : material.MaterialApp(
+                  theme: material.ThemeData(
+                    splashFactory: material.NoSplash.splashFactory,
+                  ),
+                  home: material.Scaffold(body: input),
                 ),
-              ),
-            ),
-          ),
         );
         await tester.pumpAndSettle();
-
-        // Initially no clear button
-        expect(
-          find.byIcon(cupertino.CupertinoIcons.clear_thick_circled),
-          findsNothing,
-        );
-
-        // Enter text
-        await tester.enterText(
-          find.byType(cupertino.CupertinoTextField),
-          'search text',
-        );
+        await tester.enterText(find.byType(EditableText), 'search text');
         await tester.pumpAndSettle();
-
         expect(controller.search, 'search text');
         expect(
           find.byIcon(cupertino.CupertinoIcons.clear_thick_circled),
-          findsOneWidget,
-        );
-
-        // Tap clear button
-        await tester.tap(
-          find.byIcon(cupertino.CupertinoIcons.clear_thick_circled),
-        );
-        await tester.pumpAndSettle();
-
-        expect(controller.search, '');
-        expect(
-          find.byIcon(cupertino.CupertinoIcons.clear_thick_circled),
           findsNothing,
         );
-      },
-    );
-
-    testWidgets(
-      'clear button appears when text is entered and clears on tap (Android)',
-      (
-        tester,
-      ) async {
-        final controller = CommandController();
-        await tester.pumpWidget(
-          material.MaterialApp(
-            theme: material.ThemeData(
-              splashFactory: material.NoSplash.splashFactory,
-            ),
-            home: material.Scaffold(
-              body: Command(
-                controller: controller,
-                child: const AdaptiveCommandInput(
-                  platform: TargetPlatform.android,
-                ),
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Initially no clear button
         expect(find.byIcon(material.Icons.cancel), findsNothing);
-
-        // Enter text
-        await tester.enterText(
-          find.byType(material.TextField),
-          'flutter command',
-        );
+        expect(find.byType(cupertino.CupertinoButton), findsNothing);
+        expect(find.byType(material.TextButton), findsNothing);
+        await tester.enterText(find.byType(EditableText), '');
         await tester.pumpAndSettle();
-
-        expect(controller.search, 'flutter command');
-        expect(find.byIcon(material.Icons.cancel), findsOneWidget);
-
-        // Tap clear button
-        await tester.tap(find.byIcon(material.Icons.cancel));
-        await tester.pumpAndSettle();
-
-        expect(controller.search, '');
-        expect(find.byIcon(material.Icons.cancel), findsNothing);
-      },
-    );
-
-    testWidgets('cancel button triggers onCancel callback', (tester) async {
-      var cancelled = false;
-      await tester.pumpWidget(
-        cupertino.CupertinoApp(
-          home: cupertino.CupertinoPageScaffold(
-            child: Command(
-              child: AdaptiveCommandInput(
-                platform: TargetPlatform.iOS,
-                showCancelButton: true,
-                cancelButtonLabel: 'Dismiss',
-                onCancel: () {
-                  cancelled = true;
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Dismiss'), findsOneWidget);
-      await tester.tap(find.text('Dismiss'));
-      await tester.pumpAndSettle();
-
-      expect(cancelled, isTrue);
-    });
+        expect(controller.search, isEmpty);
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     testWidgets('custom prefix and suffix render when provided', (
       tester,
@@ -248,8 +162,12 @@ void main() {
       // Controller and Command sync the preset query
       expect(textController.text, 'preset query');
       expect(
-        find.byIcon(cupertino.CupertinoIcons.clear_thick_circled),
-        findsOneWidget,
+        tester
+            .widget<cupertino.CupertinoTextField>(
+              find.byType(cupertino.CupertinoTextField),
+            )
+            .controller,
+        same(textController),
       );
 
       // Clearing external controller directly
