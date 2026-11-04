@@ -209,6 +209,13 @@ class CommandController extends ChangeNotifier {
   }
 
   void _requestScroll() {
+    // A controlled selection is committed by attach(). Until then, the old
+    // item may occupy a different position in the newly filtered results.
+    if (_binding?.value != null &&
+        _pendingScrollValue != null &&
+        _pendingScrollValue != _selectedValue) {
+      return;
+    }
     scrollRequestedId.value = null;
     scrollRequestedId.value = selectedItemId;
   }

@@ -130,14 +130,6 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       .fontWeight(FontWeight.w400)
       .onSelected(TextStyler().color(const Color(0xFFFFFFFF)));
 
-  final arrowHintBoxStyle = BoxStyler()
-      .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
-      .alignment(Alignment.center);
-
-  final arrowHintTextStyle = TextStyler()
-      .fontSize(14.0)
-      .color(const Color(0xFF55555A));
-
   @override
   void initState() {
     super.initState();

@@ -454,7 +454,8 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
   Widget _buildContent(double width) => Stack(
     children: [
       ConstrainedBox(
-        constraints: const BoxConstraints(
+        constraints: BoxConstraints(
+          minWidth: width,
           maxHeight: _headerHeight + _maxResultsHeight + _footerHeight,
         ),
         child: CommandList(

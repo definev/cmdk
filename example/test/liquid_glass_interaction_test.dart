@@ -44,6 +44,43 @@ Future<void> toggleActions(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets(
+    'clearing a selected search does not briefly scroll old results',
+    (tester) async {
+      await mountPalette(tester);
+      final main = input('LiquidGlassMainInput');
+      await tester.enterText(main, 'Youtube');
+      await tester.pumpAndSettle();
+      final scrollable = tester.state<ScrollableState>(
+        find
+            .descendant(
+              of: find.byType(CommandList).first,
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(scrollable.position.pixels, 0);
+
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: 'Youtube',
+          selection: TextSelection(baseOffset: 0, extentOffset: 7),
+        ),
+      );
+      tester.testTextInput.enterText('');
+      for (var frame = 0; frame < 12; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(
+          scrollable.position.pixels,
+          0,
+          reason: 'The restored list should stay at the top on frame $frame',
+        );
+      }
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('uses Linear width and list limits, shrinking after search', (
     tester,
   ) async {

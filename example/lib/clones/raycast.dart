@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
@@ -29,8 +31,55 @@ class _CloseRaycastActionsAction extends Action<CloseRaycastActionsIntent> {
   }
 }
 
+class _RaycastEntry {
+  const _RaycastEntry(this.value, this.keywords, {this.isCommand = false});
+
+  final String value;
+  final List<String> keywords;
+  final bool isCommand;
+}
+
+const _raycastCatalog = [
+  _RaycastEntry('Linear', ['issue', 'sprint']),
+  _RaycastEntry('Figma', ['design', 'ui', 'ux']),
+  _RaycastEntry('Slack', ['chat', 'team']),
+  _RaycastEntry('YouTube', ['video', 'stream']),
+  _RaycastEntry('Raycast', ['productivity', 'tools']),
+  _RaycastEntry('Clipboard History', ['copy', 'paste'], isCommand: true),
+  _RaycastEntry('Import Extension', ['import', 'plugin'], isCommand: true),
+  _RaycastEntry('Manage Extensions', ['manage', 'plugin'], isCommand: true),
+];
+
+// Simulated remote search: shorter queries take longer, so rapid edits can
+// finish out of order. This demonstrates async I/O, not background CPU work.
+Future<List<String>> _searchRaycast(String query) async {
+  await Future<void>.delayed(
+    Duration(milliseconds: query.length < 3 ? 900 : 450),
+  );
+  final matches =
+      [
+        for (final (index, entry) in _raycastCatalog.indexed)
+          (
+            entry: entry,
+            order: index,
+            score: commandScore(entry.value, query.trim(), entry.keywords),
+          ),
+      ].where((match) => match.score > 0).toList()..sort((a, b) {
+        final comparison = b.score.compareTo(a.score);
+        return comparison == 0 ? a.order.compareTo(b.order) : comparison;
+      });
+  return [for (final match in matches) match.entry.value];
+}
+
 class RaycastCMDK extends StatefulWidget {
-  const RaycastCMDK({super.key});
+  const RaycastCMDK({super.key, this.search, this.onCommandSelect});
+
+  /// App-owned search returning matching names from the demo catalog.
+  /// Defaults to a simulated remote source.
+  final Future<List<String>> Function(String query)? search;
+
+  /// Receives demo activation without launching an OS application.
+  final ValueChanged<String>? onCommandSelect;
 
   @override
   State<RaycastCMDK> createState() => _RaycastCMDKState();
@@ -39,13 +88,23 @@ class RaycastCMDK extends StatefulWidget {
 class _RaycastCMDKState extends State<RaycastCMDK>
     with TickerProviderStateMixin {
   String _selectedValue = 'Linear';
+  String _query = '';
+  List<_RaycastEntry> _displayedEntries = _raycastCatalog;
+  Timer? _searchDebounce;
+  int _searchGeneration = 0;
+  bool _isSearching = false;
+  bool _searchFailed = false;
   bool _isActionsMenuOpen = false;
   late AnimationController _shimmerController;
-  late Animation<double> _shimmerAnimation;
   late AnimationController _actionsAnimController;
   late Animation<double> _actionsAnimation;
   late final FocusNode _mainInputFocusNode;
   late final FocusNode _actionsInputFocusNode;
+
+  bool get _resultsAreCurrent => !_isSearching && !_searchFailed;
+  bool get _canUseSelection => _resultsAreCurrent && _selectedValue.isNotEmpty;
+  bool get _reduceMotion =>
+      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
   @override
   void initState() {
@@ -54,11 +113,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
     _actionsInputFocusNode = FocusNode(debugLabel: 'RaycastActionsInput');
     _shimmerController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat(reverse: true);
-    _shimmerAnimation = CurvedAnimation(
-      parent: _shimmerController,
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 1200),
     );
     _actionsAnimController = AnimationController(
       vsync: this,
@@ -72,7 +127,86 @@ class _RaycastCMDKState extends State<RaycastCMDK>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncSearchAnimation();
+  }
+
+  void _syncSearchAnimation() {
+    if (_isSearching && !_reduceMotion) {
+      if (!_shimmerController.isAnimating) {
+        _shimmerController.value = 0.25;
+        _shimmerController.repeat();
+      }
+    } else {
+      _shimmerController.stop();
+    }
+  }
+
+  void _onSearchChanged(String query) {
+    _searchDebounce?.cancel();
+    final generation = ++_searchGeneration;
+    _query = query;
+    if (_isActionsMenuOpen) _closeActionsMenu();
+    if (query.trim().isEmpty) {
+      _publishResults(_raycastCatalog);
+      return;
+    }
+    // Lock stale results immediately, including the debounce window.
+    setState(() {
+      _isSearching = true;
+      _searchFailed = false;
+    });
+    _syncSearchAnimation();
+    _searchDebounce = Timer(const Duration(milliseconds: 200), () {
+      _runSearch(query, generation);
+    });
+  }
+
+  Future<void> _runSearch(String query, int generation) async {
+    try {
+      final names = await (widget.search ?? _searchRaycast)(query);
+      if (!mounted || generation != _searchGeneration) return;
+      final catalog = {for (final entry in _raycastCatalog) entry.value: entry};
+      _publishResults([
+        for (final name in names.toSet())
+          if (catalog[name] case final entry?) entry,
+      ]);
+    } catch (_) {
+      if (!mounted || generation != _searchGeneration) return;
+      setState(() {
+        _isSearching = false;
+        _searchFailed = true;
+      });
+      _syncSearchAnimation();
+    }
+  }
+
+  void _publishResults(List<_RaycastEntry> entries) {
+    // Match the presentation order: applications, then commands.
+    final ordered = [
+      ...entries.where((entry) => !entry.isCommand),
+      ...entries.where((entry) => entry.isCommand),
+    ];
+    setState(() {
+      _displayedEntries = entries;
+      _isSearching = false;
+      _searchFailed = false;
+      _selectedValue = ordered.firstOrNull?.value ?? '';
+    });
+    _syncSearchAnimation();
+  }
+
+  void _activateSelected() {
+    if (!_canUseSelection) return;
+    widget.onCommandSelect?.call(_selectedValue);
+    _closeActionsMenu();
+  }
+
+  @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchGeneration++;
     _shimmerController.dispose();
     _actionsAnimController.dispose();
     _mainInputFocusNode.dispose();
@@ -81,7 +215,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
   }
 
   void _openActionsMenu() {
-    if (_isActionsMenuOpen) return;
+    if (!_canUseSelection || _isActionsMenuOpen) return;
     setState(() {
       _isActionsMenuOpen = true;
     });
@@ -316,10 +450,17 @@ class _RaycastCMDKState extends State<RaycastCMDK>
             child: Stack(
               children: [
                 Command(
+                  // Search, ranking and request freshness belong to this demo.
+                  shouldFilter: false,
+                  search: _query,
+                  onSearchChange: _onSearchChanged,
                   disablePointerSelection: true,
                   value: _selectedValue,
-                  onValueChange: (v) =>
-                      setState(() => _selectedValue = v ?? ''),
+                  onValueChange: (v) {
+                    if (_resultsAreCurrent) {
+                      setState(() => _selectedValue = v ?? '');
+                    }
+                  },
                   shortcuts: {
                     ...CommandKeyboardShortcuts.defaults(),
                     const SingleActivator(LogicalKeyboardKey.keyK, meta: true):
@@ -390,99 +531,67 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                             52.0,
                           ),
                           children: [
-                            CommandEmpty(
-                              child: Box(
+                            if (_searchFailed)
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Row(
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Couldn’t search. Try again.',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF8E8E93),
+                                        ),
+                                      ),
+                                    ),
+                                    PressableBox(
+                                      onPress: () => _onSearchChanged(_query),
+                                      style: BoxStyler().padding(
+                                        EdgeInsetsGeometryMix.all(8),
+                                      ),
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFFFF6363),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            // Read the app-owned snapshot, not a catalog that
+                            // registers new rows during the following frame.
+                            if (_resultsAreCurrent && _displayedEntries.isEmpty)
+                              Box(
                                 style: emptyBoxStyle,
                                 child: StyledText(
                                   'No results found.',
                                   style: emptyTextStyle,
                                 ),
                               ),
-                            ),
-                            CommandGroup(
-                              heading: _buildGroupHeading('Suggestions'),
-                              spacing: 4.0,
-                              topSpacing: 8.0,
-                              children: [
-                                _buildRaycastItem(
-                                  value: 'Linear',
-                                  keywords: const ['issue', 'sprint'],
-                                  icon: CmdkLogo(
-                                    child: CmdkIcons.linear(size: 12),
+                            for (final isCommand in [false, true])
+                              if (_displayedEntries.any(
+                                (entry) => entry.isCommand == isCommand,
+                              ))
+                                CommandGroup(
+                                  key: ValueKey(
+                                    isCommand
+                                        ? 'raycast-commands'
+                                        : 'raycast-suggestions',
                                   ),
-                                  label: 'Linear',
-                                  isCommand: false,
-                                ),
-                                _buildRaycastItem(
-                                  value: 'Figma',
-                                  keywords: const ['design', 'ui', 'ux'],
-                                  icon: CmdkLogo(
-                                    child: CmdkIcons.figma(size: 14),
+                                  heading: _buildGroupHeading(
+                                    isCommand ? 'Commands' : 'Suggestions',
                                   ),
-                                  label: 'Figma',
-                                  isCommand: false,
+                                  spacing: 4.0,
+                                  topSpacing: 8.0,
+                                  children: [
+                                    for (final entry in _displayedEntries)
+                                      if (entry.isCommand == isCommand)
+                                        _buildRaycastItem(entry),
+                                  ],
                                 ),
-                                _buildRaycastItem(
-                                  value: 'Slack',
-                                  keywords: const ['chat', 'team'],
-                                  icon: CmdkLogo(
-                                    child: CmdkIcons.slack(size: 14),
-                                  ),
-                                  label: 'Slack',
-                                  isCommand: false,
-                                ),
-                                _buildRaycastItem(
-                                  value: 'YouTube',
-                                  keywords: const ['video', 'stream'],
-                                  icon: CmdkLogo(
-                                    child: CmdkIcons.youtube(size: 14),
-                                  ),
-                                  label: 'YouTube',
-                                  isCommand: false,
-                                ),
-                                _buildRaycastItem(
-                                  value: 'Raycast',
-                                  keywords: const ['productivity', 'tools'],
-                                  icon: CmdkLogo(
-                                    child: CmdkIcons.raycast(size: 14),
-                                  ),
-                                  label: 'Raycast',
-                                  isCommand: false,
-                                ),
-                              ],
-                            ),
-                            CommandGroup(
-                              heading: _buildGroupHeading('Commands'),
-                              spacing: 4.0,
-                              topSpacing: 8.0,
-                              children: [
-                                _buildRaycastItem(
-                                  value: 'Clipboard History',
-                                  keywords: const ['copy', 'paste'],
-                                  icon: CmdkLogo(
-                                    child: CmdkIcons.clipboardGradient(
-                                      size: 20,
-                                    ),
-                                  ),
-                                  label: 'Clipboard History',
-                                  isCommand: true,
-                                ),
-                                _buildRaycastItem(
-                                  value: 'Import Extension',
-                                  keywords: const ['import', 'plugin'],
-                                  icon: CmdkIcons.hammerGradient(size: 20),
-                                  label: 'Import Extension',
-                                  isCommand: true,
-                                ),
-                                _buildRaycastItem(
-                                  value: 'Manage Extensions',
-                                  keywords: const ['manage', 'plugin'],
-                                  icon: CmdkIcons.hammerGradient(size: 20),
-                                  label: 'Manage Extensions',
-                                  isCommand: true,
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -522,40 +631,51 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                         // "Actions ⌘K"
                         TapRegion(
                           groupId: 'raycast_actions',
-                          child: GestureDetector(
-                            onTap: _toggleActionsMenu,
-                            behavior: HitTestBehavior.opaque,
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: Container(
-                                height: 28.0,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6.0,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _isActionsMenuOpen
-                                      ? const Color(0xFF28282C)
-                                      : const Color(0x00000000),
-                                  borderRadius: BorderRadius.circular(6.0),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    StyledText(
-                                      'Actions',
-                                      style: footerActionTextStyle,
+                          child: Semantics(
+                            button: true,
+                            enabled: _canUseSelection,
+                            child: Opacity(
+                              opacity: _canUseSelection ? 1 : 0.5,
+                              child: GestureDetector(
+                                onTap: _canUseSelection
+                                    ? _toggleActionsMenu
+                                    : null,
+                                behavior: HitTestBehavior.opaque,
+                                child: MouseRegion(
+                                  cursor: _canUseSelection
+                                      ? SystemMouseCursors.click
+                                      : SystemMouseCursors.basic,
+                                  child: Container(
+                                    height: 28.0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6.0,
                                     ),
-                                    const SizedBox(width: 6.0),
-                                    _buildKeyCap(
-                                      '⌘',
-                                      isHighlighted: _isActionsMenuOpen,
+                                    decoration: BoxDecoration(
+                                      color: _isActionsMenuOpen
+                                          ? const Color(0xFF28282C)
+                                          : const Color(0x00000000),
+                                      borderRadius: BorderRadius.circular(6.0),
                                     ),
-                                    const SizedBox(width: 3.0),
-                                    _buildKeyCap(
-                                      'K',
-                                      isHighlighted: _isActionsMenuOpen,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        StyledText(
+                                          'Actions',
+                                          style: footerActionTextStyle,
+                                        ),
+                                        const SizedBox(width: 6.0),
+                                        _buildKeyCap(
+                                          '⌘',
+                                          isHighlighted: _isActionsMenuOpen,
+                                        ),
+                                        const SizedBox(width: 3.0),
+                                        _buildKeyCap(
+                                          'K',
+                                          isHighlighted: _isActionsMenuOpen,
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -583,21 +703,66 @@ class _RaycastCMDKState extends State<RaycastCMDK>
     );
   }
 
-  Widget _buildAnimatedLoader() {
-    return ValueListenableBuilder(
-      valueListenable: _shimmerAnimation,
-      builder: (context, value, _) {
-        return Box(
-          style: loaderBaseStyle,
-          child: FractionallySizedBox(
-            alignment: Alignment(-1.0 + (value * 2.0), 0.0),
-            widthFactor: 0.35,
-            child: Box(style: loaderShimmerStyle),
+  Widget _buildAnimatedLoader() => Box(
+    style: loaderBaseStyle,
+    child: !_isSearching
+        ? null
+        : Semantics(
+            container: true,
+            liveRegion: true,
+            child: CommandLoading(
+              key: const ValueKey('raycast-search-loading'),
+              label: 'Searching apps and commands',
+              child: RepaintBoundary(
+                child: ClipRect(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final barWidth = width * 0.35;
+                      final gradient = Box(
+                        key: const ValueKey('raycast-search-gradient'),
+                        style: loaderShimmerStyle,
+                      );
+                      if (_reduceMotion) {
+                        return Align(
+                          child: SizedBox(width: barWidth, child: gradient),
+                        );
+                      }
+                      // Only translate the painted bar; do not relayout the palette
+                      // or rebuild the results on every animation tick.
+                      return Stack(
+                        children: [
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: barWidth,
+                            child: AnimatedBuilder(
+                              animation: _shimmerController,
+                              child: gradient,
+                              builder: (context, child) => Transform.translate(
+                                key: const ValueKey(
+                                  'raycast-search-gradient-motion',
+                                ),
+                                offset: Offset(
+                                  (width + barWidth) *
+                                          _shimmerController.value -
+                                      barWidth,
+                                  0,
+                                ),
+                                child: child,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
           ),
-        );
-      },
-    );
-  }
+  );
 
   Widget _buildGroupHeading(String text) {
     return Box(
@@ -606,39 +771,53 @@ class _RaycastCMDKState extends State<RaycastCMDK>
     );
   }
 
-  Widget _buildRaycastItem({
-    required String value,
-    required List<String> keywords,
-    required Widget icon,
-    required String label,
-    required bool isCommand,
-  }) {
+  Widget _buildRaycastItem(_RaycastEntry entry) {
+    final value = entry.value;
+    final icon = switch (value) {
+      'Linear' => CmdkLogo(child: CmdkIcons.linear(size: 12)),
+      'Figma' => CmdkLogo(child: CmdkIcons.figma(size: 14)),
+      'Slack' => CmdkLogo(child: CmdkIcons.slack(size: 14)),
+      'YouTube' => CmdkLogo(child: CmdkIcons.youtube(size: 14)),
+      'Raycast' => CmdkLogo(child: CmdkIcons.raycast(size: 14)),
+      'Clipboard History' => CmdkLogo(
+        child: CmdkIcons.clipboardGradient(size: 20),
+      ),
+      _ => CmdkIcons.hammerGradient(size: 20),
+    };
     return CommandItem(
+      key: ValueKey(value),
       value: value,
-      keywords: keywords,
+      keywords: entry.keywords,
+      disabled: !_resultsAreCurrent,
+      onSelect: _activateSelected,
       builder: (context, state) {
         return CommandItemStateProvider(
           state: state,
           child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Box(
-              style: itemBoxStyle,
-              child: RowBox(
-                style: itemContentRowStyle,
-                children: [
-                  SizedBox(
-                    width: 20.0,
-                    height: 20.0,
-                    child: Center(child: icon),
-                  ),
-                  const SizedBox(width: 10.0),
-                  StyledText(label, style: itemLabelStyle),
-                  const Spacer(),
-                  StyledText(
-                    isCommand ? 'Command' : 'Application',
-                    style: itemMetaStyle,
-                  ),
-                ],
+            cursor: _resultsAreCurrent
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            child: Opacity(
+              opacity: _resultsAreCurrent ? 1 : 0.5,
+              child: Box(
+                style: itemBoxStyle,
+                child: RowBox(
+                  style: itemContentRowStyle,
+                  children: [
+                    SizedBox(
+                      width: 20.0,
+                      height: 20.0,
+                      child: Center(child: icon),
+                    ),
+                    const SizedBox(width: 10.0),
+                    StyledText(value, style: itemLabelStyle),
+                    const Spacer(),
+                    StyledText(
+                      entry.isCommand ? 'Command' : 'Application',
+                      style: itemMetaStyle,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -697,6 +876,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
         selectedValue: _selectedValue,
         focusNode: _actionsInputFocusNode,
         onClose: _closeActionsMenu,
+        onActivate: _activateSelected,
         submenuBoxStyle: submenuBoxStyle,
         emptyBoxStyle: emptyBoxStyle,
         emptyTextStyle: emptyTextStyle,
@@ -715,6 +895,7 @@ class _RaycastActionsSubmenu extends StatefulWidget {
     required this.selectedValue,
     required this.focusNode,
     required this.onClose,
+    required this.onActivate,
     required this.submenuBoxStyle,
     required this.emptyBoxStyle,
     required this.emptyTextStyle,
@@ -728,6 +909,7 @@ class _RaycastActionsSubmenu extends StatefulWidget {
   final String selectedValue;
   final FocusNode focusNode;
   final VoidCallback onClose;
+  final VoidCallback onActivate;
   final BoxStyler submenuBoxStyle;
   final BoxStyler emptyBoxStyle;
   final TextStyler emptyTextStyle;
@@ -833,7 +1015,7 @@ class _RaycastActionsSubmenuState extends State<_RaycastActionsSubmenu> {
                           icon: CmdkIcons.window(size: 16),
                           label: 'Open Application',
                           shortcut: const ['↵'],
-                          onSelect: widget.onClose,
+                          onSelect: widget.onActivate,
                         ),
                         _buildSubItem(
                           value: 'Show in Finder',
