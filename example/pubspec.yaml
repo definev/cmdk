@@ -17,7 +17,9 @@ dependencies:
   mix: ^2.3.1
   flutter_svg: ^2.3.2
   liquid_glass_renderer:
-    path: /Users/vsf/source/github.com/whynotmake-it/flutter_liquid_glass/packages/liquid_glass_renderer
+    git:
+      url: https://github.com/definev/flutter_liquid_glass.git
+      path: packages/liquid_glass_renderer
   easing_gradient: ^1.0.0
 
 flutter:
