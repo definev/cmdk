@@ -120,6 +120,10 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       .size(96.0, 32.0)
       .alignment(Alignment.center);
 
+  final dockTabItemMobileStyle = BoxStyler()
+      .size(44.0, 32.0)
+      .alignment(Alignment.center);
+
   final dockTabLabelStyle = TextStyler()
       .fontSize(13.0)
       .color(const Color(0xFF8A8F98))
@@ -211,6 +215,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       },
       home: Container(
         color: const Color(0xFF0E0E10),
+        margin: MediaQuery.viewInsetsOf(context),
         child: Stack(
           children: [
             // 2. Atmospheric Multi-color Radial Glow
@@ -220,69 +225,71 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
 
             // 3. Main Foreground Content
             Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 60.0,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 640.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Top Meta Header (Asymmetric Layout)
-                      _buildTopHeader(),
-                      const SizedBox(height: 36.0),
-
-                      // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
-                      SizedBox(
-                        height: 475.0,
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            switchInCurve: Curves.easeOut,
-                            switchOutCurve: Curves.easeIn,
-                            layoutBuilder: (currentChild, previousChildren) {
-                              return Stack(
-                                alignment: Alignment.topCenter,
-                                children: [
-                                  ...previousChildren,
-                                  if (currentChild != null) currentChild,
-                                ],
-                              );
-                            },
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: ScaleTransition(
-                                  scale: Tween<double>(
-                                    begin: 0.98,
-                                    end: 1.0,
-                                  ).animate(animation),
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: _buildCurrentPalette(),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 60.0,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 640.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Top Meta Header (Asymmetric Layout)
+                        _buildTopHeader(),
+                        const SizedBox(height: 36.0),
+                
+                        // Stabilized 475px Palette Stage (mirrors CMDKWrapper in reference/website/pages/index.tsx)
+                        SizedBox(
+                          height: 475.0,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              switchInCurve: Curves.easeOut,
+                              switchOutCurve: Curves.easeIn,
+                              layoutBuilder: (currentChild, previousChildren) {
+                                return Stack(
+                                  alignment: Alignment.topCenter,
+                                  children: [
+                                    ...previousChildren,
+                                    if (currentChild != null) currentChild,
+                                  ],
+                                );
+                              },
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: ScaleTransition(
+                                    scale: Tween<double>(
+                                      begin: 0.98,
+                                      end: 1.0,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: _buildCurrentPalette(),
+                            ),
                           ),
                         ),
-                      ),
-
-                      // Bottom Theme Switcher Dock with Sliding Pill
-                      Center(child: _buildThemeSwitcherDock()),
-
-                      const SizedBox(height: 24.0),
-
-                      // Subtle Decorative Wavy Line
-                      Center(
-                        child: CustomPaint(
-                          size: const Size(180, 12),
-                          painter: _WavyLinePainter(),
+                
+                        // Bottom Theme Switcher Dock with Sliding Pill
+                        Center(child: _buildThemeSwitcherDock()),
+                
+                        const SizedBox(height: 24.0),
+                
+                        // Subtle Decorative Wavy Line
+                        Center(
+                          child: CustomPaint(
+                            size: const Size(180, 12),
+                            painter: _WavyLinePainter(),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -395,59 +402,73 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
   }
 
   Widget _buildThemeSwitcherDock() {
-    final activeIndex = _currentTheme.index;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.sizeOf(context).width;
+        final isMobile = screenWidth < 560 || constraints.maxWidth < 500;
+        final itemWidth = isMobile ? 44.0 : 96.0;
+        final activeIndex = _currentTheme.index;
 
-    return Box(
-      style: dockContainerStyle,
-      child: Stack(
-        children: [
-          // Sliding Active Pill Background
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            left: activeIndex * 96.0,
-            top: 0,
-            bottom: 0,
-            width: 96.0,
-            child: Box(style: dockActivePillStyle),
-          ),
-
-          // Button Tabs
-          Row(
-            mainAxisSize: MainAxisSize.min,
+        return Box(
+          style: dockContainerStyle,
+          child: Stack(
             children: [
-              _buildDockButton(
-                theme: CmdkTheme.raycast,
-                icon: CmdkIcons.raycast(size: 14),
-                label: 'Raycast',
+              // Sliding Active Pill Background
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                left: activeIndex * itemWidth,
+                top: 0,
+                bottom: 0,
+                width: itemWidth,
+                child: Box(style: dockActivePillStyle),
               ),
-              _buildDockButton(
-                theme: CmdkTheme.linear,
-                icon: CmdkIcons.linear(size: 14),
-                label: 'Linear',
-              ),
-              _buildDockButton(
-                theme: CmdkTheme.vercel,
-                icon: CmdkIcons.vercel(size: 14),
-                label: 'Vercel',
-              ),
-              _buildDockButton(
-                theme: CmdkTheme.framer,
-                icon: CmdkIcons.framer(size: 14),
-                label: 'Framer',
-              ),
-              _buildDockButton(
-                theme: CmdkTheme.liquidGlass,
-                icon: CmdkIcons.liquidGlass(
-                  size: 14,
-                  color: const Color(0xFF8A8F98),
-                ),
-                label: 'Glass',
+
+              // Button Tabs
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildDockButton(
+                    theme: CmdkTheme.raycast,
+                    icon: CmdkIcons.raycast(size: 14),
+                    label: 'Raycast',
+                    isMobile: isMobile,
+                  ),
+                  _buildDockButton(
+                    theme: CmdkTheme.linear,
+                    icon: CmdkIcons.linear(size: 14),
+                    label: 'Linear',
+                    isMobile: isMobile,
+                  ),
+                  _buildDockButton(
+                    theme: CmdkTheme.vercel,
+                    icon: CmdkIcons.vercel(size: 14),
+                    label: 'Vercel',
+                    isMobile: isMobile,
+                  ),
+                  _buildDockButton(
+                    theme: CmdkTheme.framer,
+                    icon: CmdkIcons.framer(size: 14),
+                    label: 'Framer',
+                    isMobile: isMobile,
+                  ),
+                  _buildDockButton(
+                    theme: CmdkTheme.liquidGlass,
+                    icon: CmdkIcons.liquidGlass(
+                      size: 14,
+                      color: _currentTheme == CmdkTheme.liquidGlass
+                          ? const Color(0xFFFFFFFF)
+                          : const Color(0xFF8A8F98),
+                    ),
+                    label: 'Glass',
+                    isMobile: isMobile,
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -455,22 +476,29 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
     required CmdkTheme theme,
     required Widget icon,
     required String label,
+    required bool isMobile,
   }) {
     final isSelected = _currentTheme == theme;
 
     return WidgetStateProvider(
       states: {if (isSelected) WidgetState.selected},
       child: PressableBox(
-        style: dockTabItemStyle,
+        style: isMobile ? dockTabItemMobileStyle : dockTabItemStyle,
         onPress: () => setState(() => _currentTheme = theme),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(width: 6.0),
-            Flexible(child: StyledText(label, style: dockTabLabelStyle)),
-          ],
-        ),
+        child: isMobile
+            ? Tooltip(
+                message: label,
+                waitDuration: const Duration(milliseconds: 300),
+                child: Center(child: icon),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  icon,
+                  const SizedBox(width: 6.0),
+                  Flexible(child: StyledText(label, style: dockTabLabelStyle)),
+                ],
+              ),
       ),
     );
   }

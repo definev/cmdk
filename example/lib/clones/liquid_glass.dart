@@ -853,11 +853,11 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
             : 245.5;
         final targetHeight = math.min(245.5, maxHeight);
         final availableWidth = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
+            ? constraints.maxWidth - 52
             : (width - 16);
         final targetWidth = (availableWidth - (highContrast ? 2.0 : 0.0)).clamp(
           200.0,
-          350.0,
+          300.0,
         );
         final fallbackCollapsed = width >= 440 ? 255.0 : 116.0;
         final collapsedWidth = _measuredPillWidth > 0
