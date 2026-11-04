@@ -4,11 +4,36 @@ Command search is an editing session. Its text, caret, selection, composing rang
 and focus must survive result updates. The application chooses the surrounding
 panel layout independently of the editor implementation.
 
+## AdaptiveCommandInput Widget
+
+For ready-to-use mobile and desktop search input without boilerplate, use `AdaptiveCommandInput` (or its alias `CommandAdaptiveInput`) from `package:cmdk_ui/cmdk_ui.dart`:
+
+```dart
+import 'package:cmdk_ui/cmdk_ui.dart';
+
+AdaptiveCommandInput(
+  placeholder: 'Search commands...',
+  filled: true,
+  showClearButton: true,
+  showCancelButton: true,
+  onCancel: () => Navigator.of(context).pop(),
+)
+```
+
+### Mobile Features Built-In:
+- **Platform-Aware Adaptation**: Automatically chooses `CupertinoTextField` on iOS/macOS and `TextField` on Android, respecting ambient `Theme.of(context).platform`.
+- **Reactive Clear Button**: Displays an adaptive clear button (`X` / cancel icon) whenever query text is non-empty. Tapping it resets the search query without unfocusing the keyboard or dismissing the sheet/dialog.
+- **Touch Target Accessibility**: Ensures a minimum 44px touch target height conforming to mobile guidelines (`minHeight: 44.0`).
+- **Cancel Affordance**: Optional trailing Cancel button for modal mobile search patterns (`showCancelButton: true`, `onCancel`).
+- **Container Styling**: Supports `filled: true` for native search bar pill/capsule background using system fill colors (`CupertinoColors.tertiarySystemFill` on iOS, `surfaceContainerHighest` on Material).
+- **Optional Prefix/Suffix**: Retains optional `prefix` and `suffix` widget slots without forcing default search glyphs.
+
 ## Framework editors
 
-Use `materialCommandInputBuilder(...)` from `package:cmdk/material.dart` under a
-Material application, or `cupertinoCommandInputBuilder(...)` from
-`package:cmdk/cupertino.dart` under a Cupertino application. Both functions return
+Use `materialCommandInputBuilder(...)` from `package:cmdk_ui/material.dart` under a
+Material application, `cupertinoCommandInputBuilder(...)` from
+`package:cmdk_ui/cupertino.dart` under a Cupertino application, or
+`adaptiveCommandInputBuilder(...)` from `package:cmdk_ui/adaptive.dart`. All functions return
 a `CommandInputEditorBuilder` that builds a full framework field without decoration,
 and allow custom appearance configuration like `cursorColor`, `cursorWidth`,
 `cursorHeight`, `cursorRadius`, `cursorOpacityAnimates`, and `showCursor` (or inherit
@@ -16,7 +41,7 @@ them from `CommandInput` via `CommandInputEditor`). The command input retains it
 composition. Flutter owns touch gestures, platform word boundaries, handles,
 magnifier, clipboard actions, caret reveal and accessibility behavior.
 
-The widgets-only default remains useful for custom design systems, but its
+The widgets-only default in `cmdk` remains useful for custom design systems, but its
 `EditableText` provides basic gestures and no default selection toolbar. It is
 not a substitute for the framework adapters on a production phone UI.
 

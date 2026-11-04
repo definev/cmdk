@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
-import 'package:cmdk/cmdk.dart';
+import 'package:cmdk_ui/cmdk_ui.dart';
 
 /// Context variant for selection state using Flutter's [WidgetState.selected].
 final selectedVariant = ContextVariant.widgetState(WidgetState.selected);

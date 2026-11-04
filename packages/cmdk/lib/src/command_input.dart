@@ -77,33 +77,34 @@ CommandInputEditorBuilder defaultCommandInputEditorBuilder({
   TextStyle? style,
   Brightness? keyboardAppearance,
   EdgeInsets? scrollPadding,
-}) => (BuildContext context, CommandInputEditor editor) => EditableText(
-  controller: editor.controller,
-  focusNode: editor.focusNode,
-  autofocus: editor.autofocus,
-  style: style ?? editor.style,
-  cursorColor: cursorColor ?? editor.cursorColor,
-  backgroundCursorColor:
-      backgroundCursorColor ?? editor.backgroundCursorColor,
-  cursorWidth: cursorWidth ?? editor.cursorWidth,
-  cursorHeight: cursorHeight ?? editor.cursorHeight,
-  cursorRadius: cursorRadius ?? editor.cursorRadius,
-  cursorOpacityAnimates:
-      cursorOpacityAnimates ?? editor.cursorOpacityAnimates ?? false,
-  showCursor: showCursor ?? editor.showCursor,
-  keyboardType: TextInputType.text,
-  textInputAction: TextInputAction.search,
-  autocorrect: editor.autocorrect,
-  enableSuggestions: editor.enableSuggestions,
-  textCapitalization: editor.textCapitalization,
-  smartDashesType: editor.smartDashesType,
-  smartQuotesType: editor.smartQuotesType,
-  keyboardAppearance:
-      keyboardAppearance ?? editor.keyboardAppearance ?? Brightness.light,
-  scrollPadding: scrollPadding ?? editor.scrollPadding,
-  onEditingComplete: editor.onEditingComplete,
-  onSubmitted: editor.onSubmitted,
-);
+}) =>
+    (BuildContext context, CommandInputEditor editor) => EditableText(
+      controller: editor.controller,
+      focusNode: editor.focusNode,
+      autofocus: editor.autofocus,
+      style: style ?? editor.style,
+      cursorColor: cursorColor ?? editor.cursorColor,
+      backgroundCursorColor:
+          backgroundCursorColor ?? editor.backgroundCursorColor,
+      cursorWidth: cursorWidth ?? editor.cursorWidth,
+      cursorHeight: cursorHeight ?? editor.cursorHeight,
+      cursorRadius: cursorRadius ?? editor.cursorRadius,
+      cursorOpacityAnimates:
+          cursorOpacityAnimates ?? editor.cursorOpacityAnimates ?? false,
+      showCursor: showCursor ?? editor.showCursor,
+      keyboardType: TextInputType.text,
+      textInputAction: TextInputAction.search,
+      autocorrect: editor.autocorrect,
+      enableSuggestions: editor.enableSuggestions,
+      textCapitalization: editor.textCapitalization,
+      smartDashesType: editor.smartDashesType,
+      smartQuotesType: editor.smartQuotesType,
+      keyboardAppearance:
+          keyboardAppearance ?? editor.keyboardAppearance ?? Brightness.light,
+      scrollPadding: scrollPadding ?? editor.scrollPadding,
+      onEditingComplete: editor.onEditingComplete,
+      onSubmitted: editor.onSubmitted,
+    );
 
 /// A completely headless, unstyled search input for the command menu.
 ///

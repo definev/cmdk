@@ -1,7 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
-import 'package:cmdk/cmdk.dart';
+import 'package:cmdk_ui/cmdk_ui.dart';
+
 import 'icons.dart';
 import 'styler_variants.dart';
 
@@ -125,50 +126,60 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       .maxWidth(640.0)
       .color(const Color(0xFF1E1E20))
       .borderRadius(BorderRadiusGeometryMix.circular(12.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF2C2C30), width: 1.0),
-      ))
-      .shadow(BoxShadowMix(
-        color: const Color(0x7F000000),
-        blurRadius: 40.0,
-        offset: const Offset(0, 20),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF2C2C30), width: 1.0),
+        ),
+      )
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x7F000000),
+          blurRadius: 40.0,
+          offset: const Offset(0, 20),
+        ),
+      );
 
   // Top delicate shine gradient styler
-  final topShineStyle = BoxStyler().height(1.0).gradient(LinearGradientMix(
-        colors: const [
-          Color(0x0038BDF8),
-          Color(0x4438BDF8),
-          Color(0xCCEC4899),
-          Color(0x00EC4899),
-        ],
-      ));
+  final topShineStyle = BoxStyler()
+      .height(1.0)
+      .gradient(
+        LinearGradientMix(
+          colors: const [
+            Color(0x0038BDF8),
+            Color(0x4438BDF8),
+            Color(0xCCEC4899),
+            Color(0x00EC4899),
+          ],
+        ),
+      );
 
   // Input wrapper styler
   final inputWrapStyle = BoxStyler().padding(
-      EdgeInsetsGeometryMix.symmetric(horizontal: 16.0, vertical: 12.0));
+    EdgeInsetsGeometryMix.symmetric(horizontal: 16.0, vertical: 12.0),
+  );
 
   // Loader stylers
-  final loaderBaseStyle =
-      BoxStyler().height(1.0).color(const Color(0xFF26262A));
+  final loaderBaseStyle = BoxStyler()
+      .height(1.0)
+      .color(const Color(0xFF26262A));
 
-  final loaderShimmerStyle = BoxStyler().gradient(LinearGradientMix(
-    colors: const [
-      Color(0x00FF6363),
-      Color(0xFFFF6363),
-      Color(0x00FF6363),
-    ],
-  ));
+  final loaderShimmerStyle = BoxStyler().gradient(
+    LinearGradientMix(
+      colors: const [Color(0x00FF6363), Color(0xFFFF6363), Color(0x00FF6363)],
+    ),
+  );
 
   // Empty state stylers
   final emptyBoxStyle = BoxStyler().height(64.0).alignment(Alignment.center);
 
-  final emptyTextStyle =
-      TextStyler().fontSize(14.0).color(const Color(0xFF707075));
+  final emptyTextStyle = TextStyler()
+      .fontSize(14.0)
+      .color(const Color(0xFF707075));
 
   // Group heading stylers
-  final headingBoxStyle = BoxStyler()
-      .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0, vertical: 6.0));
+  final headingBoxStyle = BoxStyler().padding(
+    EdgeInsetsGeometryMix.symmetric(horizontal: 8.0, vertical: 6.0),
+  );
 
   final headingTextStyle = TextStyler()
       .fontSize(12.0)
@@ -184,8 +195,9 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       .onHovered(BoxStyler().color(const Color(0xFF242427)))
       .onSelected(BoxStyler().color(const Color(0xFF28282C)));
 
-  final itemContentRowStyle =
-      FlexBoxStyler().crossAxisAlignment(CrossAxisAlignment.center);
+  final itemContentRowStyle = FlexBoxStyler().crossAxisAlignment(
+    CrossAxisAlignment.center,
+  );
 
   final itemLabelStyle = TextStyler()
       .fontSize(14.0)
@@ -205,9 +217,11 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 5.0, vertical: 2.0))
       .color(const Color(0xFF26262A))
       .borderRadius(BorderRadiusGeometryMix.circular(4.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF333338), width: 1.0),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF333338), width: 1.0),
+        ),
+      );
 
   final keycapTextStyle = TextStyler()
       .fontSize(11.0)
@@ -217,14 +231,18 @@ class _RaycastCMDKState extends State<RaycastCMDK>
   // Footer stylers
   final footerStyle = BoxStyler()
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 12.0, vertical: 8.0))
-      .border(BorderMix.top(
-        BorderSideMix(color: const Color(0xFF26262A), width: 1.0),
-      ))
+      .border(
+        BorderMix.top(
+          BorderSideMix(color: const Color(0xFF26262A), width: 1.0),
+        ),
+      )
       .color(const Color(0xFF18181A))
-      .borderRadius(BorderRadiusGeometryMix.only(
-        bottomLeft: const Radius.circular(12.0),
-        bottomRight: const Radius.circular(12.0),
-      ));
+      .borderRadius(
+        BorderRadiusGeometryMix.only(
+          bottomLeft: const Radius.circular(12.0),
+          bottomRight: const Radius.circular(12.0),
+        ),
+      );
 
   final footerHintTextStyle = TextStyler()
       .fontSize(12.0)
@@ -236,22 +254,27 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       .color(const Color(0xFFEDEDED))
       .fontWeight(FontWeight.w500);
 
-  final footerDividerStyle =
-      BoxStyler().size(1.0, 12.0).color(const Color(0xFF2C2C32));
+  final footerDividerStyle = BoxStyler()
+      .size(1.0, 12.0)
+      .color(const Color(0xFF2C2C32));
 
   // Submenu stylers
   final submenuBoxStyle = BoxStyler()
       .width(320.0)
       .color(const Color(0xFF1E1E22))
       .borderRadius(BorderRadiusGeometryMix.circular(8.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF2C2C30), width: 1.0),
-      ))
-      .shadow(BoxShadowMix(
-        color: const Color(0x7F000000),
-        blurRadius: 30.0,
-        offset: const Offset(0, 10),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF2C2C30), width: 1.0),
+        ),
+      )
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x7F000000),
+          blurRadius: 30.0,
+          offset: const Offset(0, 10),
+        ),
+      );
 
   final submenuItemBoxStyle = BoxStyler()
       .height(40.0)
@@ -307,11 +330,11 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                   actions: {
                     ToggleRaycastActionsIntent:
                         CallbackAction<ToggleRaycastActionsIntent>(
-                      onInvoke: (_) {
-                        _toggleActionsMenu();
-                        return null;
-                      },
-                    ),
+                          onInvoke: (_) {
+                            _toggleActionsMenu();
+                            return null;
+                          },
+                        ),
                     CloseRaycastActionsIntent: _CloseRaycastActionsAction(
                       _isActionsMenuOpen,
                       _closeActionsMenu,
@@ -354,8 +377,18 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                         child: CommandList(
                           shrinkWrap: false,
                           animateHeight: false,
-                          padding:
-                              const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 52.0),
+                          physics: const ClampingScrollPhysics(),
+                          scrollbarBuilder: rawCommandScrollbarBuilder(
+                            thumbColor: const Color(0xFF2C2C32),
+                            thickness: 4.0,
+                            radius: const Radius.circular(2.0),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(
+                            8.0,
+                            0.0,
+                            8.0,
+                            52.0,
+                          ),
                           children: [
                             CommandEmpty(
                               child: Box(
@@ -375,7 +408,8 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                   value: 'Linear',
                                   keywords: const ['issue', 'sprint'],
                                   icon: CmdkLogo(
-                                      child: CmdkIcons.linear(size: 12)),
+                                    child: CmdkIcons.linear(size: 12),
+                                  ),
                                   label: 'Linear',
                                   isCommand: false,
                                 ),
@@ -383,7 +417,8 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                   value: 'Figma',
                                   keywords: const ['design', 'ui', 'ux'],
                                   icon: CmdkLogo(
-                                      child: CmdkIcons.figma(size: 14)),
+                                    child: CmdkIcons.figma(size: 14),
+                                  ),
                                   label: 'Figma',
                                   isCommand: false,
                                 ),
@@ -391,7 +426,8 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                   value: 'Slack',
                                   keywords: const ['chat', 'team'],
                                   icon: CmdkLogo(
-                                      child: CmdkIcons.slack(size: 14)),
+                                    child: CmdkIcons.slack(size: 14),
+                                  ),
                                   label: 'Slack',
                                   isCommand: false,
                                 ),
@@ -399,7 +435,8 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                   value: 'YouTube',
                                   keywords: const ['video', 'stream'],
                                   icon: CmdkLogo(
-                                      child: CmdkIcons.youtube(size: 14)),
+                                    child: CmdkIcons.youtube(size: 14),
+                                  ),
                                   label: 'YouTube',
                                   isCommand: false,
                                 ),
@@ -407,7 +444,8 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                   value: 'Raycast',
                                   keywords: const ['productivity', 'tools'],
                                   icon: CmdkLogo(
-                                      child: CmdkIcons.raycast(size: 14)),
+                                    child: CmdkIcons.raycast(size: 14),
+                                  ),
                                   label: 'Raycast',
                                   isCommand: false,
                                 ),
@@ -422,8 +460,10 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                   value: 'Clipboard History',
                                   keywords: const ['copy', 'paste'],
                                   icon: CmdkLogo(
-                                      child: CmdkIcons.clipboardGradient(
-                                          size: 20)),
+                                    child: CmdkIcons.clipboardGradient(
+                                      size: 20,
+                                    ),
+                                  ),
                                   label: 'Clipboard History',
                                   isCommand: true,
                                 ),
@@ -489,8 +529,9 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                               cursor: SystemMouseCursors.click,
                               child: Container(
                                 height: 28.0,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 6.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6.0,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _isActionsMenuOpen
                                       ? const Color(0xFF28282C)
@@ -505,11 +546,15 @@ class _RaycastCMDKState extends State<RaycastCMDK>
                                       style: footerActionTextStyle,
                                     ),
                                     const SizedBox(width: 6.0),
-                                    _buildKeyCap('⌘',
-                                        isHighlighted: _isActionsMenuOpen),
+                                    _buildKeyCap(
+                                      '⌘',
+                                      isHighlighted: _isActionsMenuOpen,
+                                    ),
                                     const SizedBox(width: 3.0),
-                                    _buildKeyCap('K',
-                                        isHighlighted: _isActionsMenuOpen),
+                                    _buildKeyCap(
+                                      'K',
+                                      isHighlighted: _isActionsMenuOpen,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -557,10 +602,7 @@ class _RaycastCMDKState extends State<RaycastCMDK>
   Widget _buildGroupHeading(String text) {
     return Box(
       style: headingBoxStyle,
-      child: StyledText(
-        text,
-        style: headingTextStyle,
-      ),
+      child: StyledText(text, style: headingTextStyle),
     );
   }
 
@@ -584,12 +626,13 @@ class _RaycastCMDKState extends State<RaycastCMDK>
               child: RowBox(
                 style: itemContentRowStyle,
                 children: [
-                  SizedBox(width: 20.0, height: 20.0, child: Center(child: icon)),
-                  const SizedBox(width: 10.0),
-                  StyledText(
-                    label,
-                    style: itemLabelStyle,
+                  SizedBox(
+                    width: 20.0,
+                    height: 20.0,
+                    child: Center(child: icon),
                   ),
+                  const SizedBox(width: 10.0),
+                  StyledText(label, style: itemLabelStyle),
                   const Spacer(),
                   StyledText(
                     isCommand ? 'Command' : 'Application',
@@ -610,12 +653,14 @@ class _RaycastCMDKState extends State<RaycastCMDK>
       height: 20.0,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color:
-            isHighlighted ? const Color(0xFF38383E) : const Color(0xFF26262A),
+        color: isHighlighted
+            ? const Color(0xFF38383E)
+            : const Color(0xFF26262A),
         borderRadius: BorderRadius.circular(4.0),
         border: Border.all(
-          color:
-              isHighlighted ? const Color(0xFF484850) : const Color(0xFF333338),
+          color: isHighlighted
+              ? const Color(0xFF484850)
+              : const Color(0xFF333338),
           width: 1.0,
         ),
       ),
@@ -623,8 +668,9 @@ class _RaycastCMDKState extends State<RaycastCMDK>
         text,
         style: TextStyle(
           fontSize: 11.0,
-          color:
-              isHighlighted ? const Color(0xFFFFFFFF) : const Color(0xFFEDEDED),
+          color: isHighlighted
+              ? const Color(0xFFFFFFFF)
+              : const Color(0xFFEDEDED),
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -734,18 +780,18 @@ class _RaycastActionsSubmenuState extends State<_RaycastActionsSubmenu> {
             actions: {
               CloseRaycastActionsIntent:
                   CallbackAction<CloseRaycastActionsIntent>(
-                onInvoke: (_) {
-                  widget.onClose();
-                  return null;
-                },
-              ),
+                    onInvoke: (_) {
+                      widget.onClose();
+                      return null;
+                    },
+                  ),
               ToggleRaycastActionsIntent:
                   CallbackAction<ToggleRaycastActionsIntent>(
-                onInvoke: (_) {
-                  widget.onClose();
-                  return null;
-                },
-              ),
+                    onInvoke: (_) {
+                      widget.onClose();
+                      return null;
+                    },
+                  ),
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -768,7 +814,10 @@ class _RaycastActionsSubmenuState extends State<_RaycastActionsSubmenu> {
                       heading: Box(
                         style: BoxStyler().padding(
                           EdgeInsetsGeometryMix.only(
-                              left: 4.0, top: 4.0, bottom: 8.0),
+                            left: 4.0,
+                            top: 4.0,
+                            bottom: 8.0,
+                          ),
                         ),
                         child: StyledText(
                           widget.selectedValue,
@@ -816,7 +865,9 @@ class _RaycastActionsSubmenuState extends State<_RaycastActionsSubmenu> {
                   autofocus: true,
                   placeholder: 'Search for actions...',
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 12.0),
+                    horizontal: 12.0,
+                    vertical: 12.0,
+                  ),
                   decoration: const BoxDecoration(
                     border: Border(
                       top: BorderSide(color: Color(0xFF2C2C30), width: 1.0),
@@ -895,10 +946,7 @@ class _RaycastActionsSubmenuState extends State<_RaycastActionsSubmenu> {
   Widget _buildSubmenuKeyCap(String text) {
     return Box(
       style: widget.submenuKeycapBoxStyle,
-      child: StyledText(
-        text,
-        style: widget.submenuKeycapTextStyle,
-      ),
+      child: StyledText(text, style: widget.submenuKeycapTextStyle),
     );
   }
 }

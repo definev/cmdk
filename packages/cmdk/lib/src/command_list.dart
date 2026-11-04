@@ -6,6 +6,14 @@ import 'models.dart';
 import 'scope.dart';
 import 'render_sizer.dart';
 
+/// Builds a scrollbar around the list content using the active [ScrollController].
+typedef CommandScrollbarBuilder =
+    Widget Function(
+      BuildContext context,
+      Widget child,
+      ScrollController scrollController,
+    );
+
 /// A composable eager list, or a data-backed virtual list.
 class CommandList extends StatefulWidget {
   const CommandList({
@@ -19,6 +27,7 @@ class CommandList extends StatefulWidget {
     this.shrinkWrap = true,
     this.label = 'Suggestions',
     this.spacing = 0.0,
+    this.scrollbarBuilder,
     required this.children,
   }) : items = null,
        itemBuilder = null,
@@ -37,6 +46,7 @@ class CommandList extends StatefulWidget {
     this.shrinkWrap = false,
     this.label = 'Suggestions',
     this.spacing = 0.0,
+    this.scrollbarBuilder,
     required List<ItemEntry> this.items,
     required Widget Function(BuildContext, ItemEntry, CommandItemState)
     this.itemBuilder,
@@ -53,6 +63,7 @@ class CommandList extends StatefulWidget {
   final bool shrinkWrap;
   final String label;
   final double spacing;
+  final CommandScrollbarBuilder? scrollbarBuilder;
   final List<Widget> children;
   final List<ItemEntry>? items;
   final Widget Function(BuildContext, ItemEntry, CommandItemState)? itemBuilder;
@@ -212,6 +223,9 @@ class _CommandListState extends State<CommandList> {
               child: CommandCollection(children: widget.children),
             ),
           );
+        }
+        if (widget.scrollbarBuilder != null) {
+          content = widget.scrollbarBuilder!(context, content, _scroll);
         }
         if (widget.animateHeight) {
           content = CommandListSizer(

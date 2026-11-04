@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mix/mix.dart';
+
 import 'clones/framer.dart';
 import 'clones/icons.dart';
 import 'clones/linear.dart';
+import 'clones/liquid_glass.dart';
 import 'clones/raycast.dart';
 import 'clones/styler_variants.dart';
 import 'clones/vercel.dart';
@@ -20,12 +22,7 @@ class PreviousThemeIntent extends Intent {
   const PreviousThemeIntent();
 }
 
-enum CmdkTheme {
-  raycast,
-  linear,
-  vercel,
-  framer,
-}
+enum CmdkTheme { raycast, linear, vercel, framer, liquidGlass }
 
 class CmdkExampleApp extends StatefulWidget {
   const CmdkExampleApp({super.key});
@@ -44,9 +41,11 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
       .color(const Color(0xFF1E1E22))
       .borderRadius(BorderRadiusGeometryMix.circular(12.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF2C2C32), width: 1.0),
-      ))
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF2C2C32), width: 1.0),
+        ),
+      )
       .alignment(Alignment.center);
 
   final versionBadgeTextStyle = TextStyler()
@@ -61,17 +60,21 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       .letterSpacing(-1.8)
       .height(1.2);
 
-  final subtitleTextStyle =
-      TextStyler().fontSize(16.0).color(const Color(0xFF8A8F98)).height(1.4);
+  final subtitleTextStyle = TextStyler()
+      .fontSize(16.0)
+      .color(const Color(0xFF8A8F98))
+      .height(1.4);
 
   final copyButtonBoxStyle = BoxStyler()
       .height(40.0)
       .padding(EdgeInsetsGeometryMix.fromLTRB(14.0, 0, 6.0, 0))
       .color(const Color(0xFF202126))
       .borderRadius(BorderRadiusGeometryMix.circular(9999.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF2E3036), width: 1.0),
-      ))
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF2E3036), width: 1.0),
+        ),
+      )
       .alignment(Alignment.center);
 
   final copyButtonTextStyle = TextStyler()
@@ -103,16 +106,19 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       .padding(EdgeInsetsGeometryMix.all(3.0))
       .color(const Color(0xFF18181C))
       .borderRadius(BorderRadiusGeometryMix.circular(9999.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF28292E), width: 1.0),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF28292E), width: 1.0),
+        ),
+      );
 
   final dockActivePillStyle = BoxStyler()
       .color(const Color(0xFF2C2D34))
       .borderRadius(BorderRadiusGeometryMix.circular(9999.0));
 
-  final dockTabItemStyle =
-      BoxStyler().size(96.0, 32.0).alignment(Alignment.center);
+  final dockTabItemStyle = BoxStyler()
+      .size(96.0, 32.0)
+      .alignment(Alignment.center);
 
   final dockTabLabelStyle = TextStyler()
       .fontSize(13.0)
@@ -124,18 +130,28 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
       .alignment(Alignment.center);
 
-  final arrowHintTextStyle =
-      TextStyler().fontSize(14.0).color(const Color(0xFF55555A));
+  final arrowHintTextStyle = TextStyler()
+      .fontSize(14.0)
+      .color(const Color(0xFF55555A));
 
   @override
   void initState() {
     super.initState();
     final themeParam = Uri.base.queryParameters['theme'];
     if (themeParam != null) {
-      for (final t in CmdkTheme.values) {
-        if (t.name.toLowerCase() == themeParam.toLowerCase()) {
-          _currentTheme = t;
-          break;
+      final param = themeParam.toLowerCase();
+      if (param == 'glass' ||
+          param == 'liquid' ||
+          param == 'liquid_glass' ||
+          param == 'liquidglass' ||
+          param == 'raycast_glass') {
+        _currentTheme = CmdkTheme.liquidGlass;
+      } else {
+        for (final t in CmdkTheme.values) {
+          if (t.name.toLowerCase() == param) {
+            _currentTheme = t;
+            break;
+          }
         }
       }
     }
@@ -147,7 +163,8 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
   }
 
   void _prevTheme() {
-    final prevIndex = (_currentTheme.index - 1 + CmdkTheme.values.length) %
+    final prevIndex =
+        (_currentTheme.index - 1 + CmdkTheme.values.length) %
         CmdkTheme.values.length;
     setState(() => _currentTheme = CmdkTheme.values[prevIndex]);
   }
@@ -198,16 +215,16 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
           children: [
             // 2. Atmospheric Multi-color Radial Glow
             Positioned.fill(
-              child: CustomPaint(
-                painter: _AtmosphericMeshPainter(),
-              ),
+              child: CustomPaint(painter: _AtmosphericMeshPainter()),
             ),
 
             // 3. Main Foreground Content
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0, vertical: 60.0),
+                  horizontal: 24.0,
+                  vertical: 60.0,
+                ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640.0),
                   child: Column(
@@ -240,8 +257,10 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                               return FadeTransition(
                                 opacity: animation,
                                 child: ScaleTransition(
-                                  scale: Tween<double>(begin: 0.98, end: 1.0)
-                                      .animate(animation),
+                                  scale: Tween<double>(
+                                    begin: 0.98,
+                                    end: 1.0,
+                                  ).animate(animation),
                                   child: child,
                                 ),
                               );
@@ -252,9 +271,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                       ),
 
                       // Bottom Theme Switcher Dock with Sliding Pill
-                      Center(
-                        child: _buildThemeSwitcherDock(),
-                      ),
+                      Center(child: _buildThemeSwitcherDock()),
 
                       const SizedBox(height: 24.0),
 
@@ -290,18 +307,12 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                 children: [
                   Box(
                     style: versionBadgeStyle,
-                    child: StyledText(
-                      'v0.1.0',
-                      style: versionBadgeTextStyle,
-                    ),
+                    child: StyledText('v0.1.0', style: versionBadgeTextStyle),
                   ),
                 ],
               ),
               const SizedBox(height: 8.0),
-              StyledText(
-                '⌘K',
-                style: titleTextStyle,
-              ),
+              StyledText('⌘K', style: titleTextStyle),
               const SizedBox(height: 4.0),
               StyledText(
                 'Fast, composable, unstyled command menu for Flutter.',
@@ -331,13 +342,18 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                   ),
                   const SizedBox(width: 12.0),
                   Box(
-                    style: copyIconBadgeStyle
-                        .applyVariants([if (_copied) copiedVariant]),
+                    style: copyIconBadgeStyle.applyVariants([
+                      if (_copied) copiedVariant,
+                    ]),
                     child: _copied
                         ? CmdkIcons.check(
-                            size: 14, color: const Color(0xFF10B981))
+                            size: 14,
+                            color: const Color(0xFF10B981),
+                          )
                         : CmdkIcons.copy(
-                            size: 14, color: const Color(0xFF8A8F98)),
+                            size: 14,
+                            color: const Color(0xFF8A8F98),
+                          ),
                   ),
                 ],
               ),
@@ -353,10 +369,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                 children: [
                   CmdkIcons.github(size: 14, color: const Color(0xFF8A8F98)),
                   const SizedBox(width: 8.0),
-                  StyledText(
-                    'definev/cmdk',
-                    style: githubButtonTextStyle,
-                  ),
+                  StyledText('definev/cmdk', style: githubButtonTextStyle),
                 ],
               ),
             ),
@@ -376,6 +389,8 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
         return const VercelCMDK(key: ValueKey('vercel'));
       case CmdkTheme.framer:
         return const FramerCMDK(key: ValueKey('framer'));
+      case CmdkTheme.liquidGlass:
+        return const LiquidGlassCMDK(key: ValueKey('liquid_glass'));
     }
   }
 
@@ -421,6 +436,14 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
                 icon: CmdkIcons.framer(size: 14),
                 label: 'Framer',
               ),
+              _buildDockButton(
+                theme: CmdkTheme.liquidGlass,
+                icon: CmdkIcons.liquidGlass(
+                  size: 14,
+                  color: const Color(0xFF8A8F98),
+                ),
+                label: 'Glass',
+              ),
             ],
           ),
         ],
@@ -436,9 +459,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
     final isSelected = _currentTheme == theme;
 
     return WidgetStateProvider(
-      states: {
-        if (isSelected) WidgetState.selected,
-      },
+      states: {if (isSelected) WidgetState.selected},
       child: PressableBox(
         style: dockTabItemStyle,
         onPress: () => setState(() => _currentTheme = theme),
@@ -447,12 +468,7 @@ class _CmdkExampleAppState extends State<CmdkExampleApp> {
           children: [
             icon,
             const SizedBox(width: 6.0),
-            Flexible(
-              child: StyledText(
-                label,
-                style: dockTabLabelStyle,
-              ),
-            ),
+            Flexible(child: StyledText(label, style: dockTabLabelStyle)),
           ],
         ),
       ),
@@ -471,14 +487,20 @@ class _AtmosphericMeshPainter extends CustomPainter {
       ..color = const Color(0x1F38BDF8)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 90.0);
     canvas.drawCircle(
-        Offset(center.dx - 180, center.dy - 60), 160.0, bluePaint);
+      Offset(center.dx - 180, center.dy - 60),
+      160.0,
+      bluePaint,
+    );
 
     // Purple / Indigo blob
     final purplePaint = Paint()
       ..color = const Color(0x22818CF8)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100.0);
     canvas.drawCircle(
-        Offset(center.dx + 160, center.dy - 40), 170.0, purplePaint);
+      Offset(center.dx + 160, center.dy - 40),
+      170.0,
+      purplePaint,
+    );
 
     // Pink / Magenta blob
     final pinkPaint = Paint()

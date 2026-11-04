@@ -1,15 +1,12 @@
 import 'dart:ui' as ui;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// Wraps an icon with a subtle diffused background blur glow,
 /// matching the original cmdk Logo wrapper component from the web.
 class CmdkLogo extends StatelessWidget {
-  const CmdkLogo({
-    super.key,
-    required this.child,
-    this.size = 20.0,
-  });
+  const CmdkLogo({super.key, required this.child, this.size = 20.0});
 
   final Widget child;
   final double size;
@@ -20,9 +17,7 @@ class CmdkLogo extends StatelessWidget {
       width: size,
       height: size,
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4.0),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(4.0)),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -48,51 +43,23 @@ class CmdkIcons {
   // ==================== APP & BRAND LOGOS ====================
 
   /// Raycast default mark (28x28 viewBox).
-  static Widget raycast({
-    double size = 16.0,
-    Color? color,
-  }) {
-    return _svg(
-      _rawRaycast,
-      size: size,
-      color: color,
-    );
+  static Widget raycast({double size = 16.0, Color? color}) {
+    return _svg(_rawRaycast, size: size, color: color);
   }
 
   /// Raycast dark mode detailed footer mark (1024x1024 viewBox).
-  static Widget raycastDark({
-    double size = 20.0,
-    Color? color,
-  }) {
-    return _svg(
-      _rawRaycastDark,
-      size: size,
-      color: color,
-    );
+  static Widget raycastDark({double size = 20.0, Color? color}) {
+    return _svg(_rawRaycastDark, size: size, color: color);
   }
 
   /// Raycast light mode detailed footer mark (1024x1024 viewBox).
-  static Widget raycastLight({
-    double size = 20.0,
-    Color? color,
-  }) {
-    return _svg(
-      _rawRaycastLight,
-      size: size,
-      color: color,
-    );
+  static Widget raycastLight({double size = 20.0, Color? color}) {
+    return _svg(_rawRaycastLight, size: size, color: color);
   }
 
   /// Linear brand mark (64x64 viewBox).
-  static Widget linear({
-    double size = 16.0,
-    Color? color,
-  }) {
-    return _svg(
-      _rawLinear,
-      size: size,
-      color: color,
-    );
+  static Widget linear({double size = 16.0, Color? color}) {
+    return _svg(_rawLinear, size: size, color: color);
   }
 
   /// Vercel triangle mark (75x65 viewBox).
@@ -100,11 +67,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFFFFFFF),
   }) {
-    return _svg(
-      _rawVercel,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawVercel, size: size, color: color);
   }
 
   /// Framer geometric mark (16x24 viewBox).
@@ -112,11 +75,12 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFFFFFFF),
   }) {
-    return _svg(
-      _rawFramer,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawFramer, size: size, color: color);
+  }
+
+  /// Liquid Glass refractive lens / droplet mark.
+  static Widget liquidGlass({double size = 16.0, Color? color}) {
+    return _svg(_rawLiquidGlass, size: size, color: color);
   }
 
   /// Figma multi-color logo (48x48 viewBox).
@@ -139,11 +103,7 @@ class CmdkIcons {
     double size = 14.0,
     Color color = const Color(0xFFEDEDED),
   }) {
-    return _svg(
-      _rawGitHub,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawGitHub, size: size, color: color);
   }
 
   // ==================== COMMON UTILITY ICONS ====================
@@ -153,11 +113,7 @@ class CmdkIcons {
     double size = 14.0,
     Color color = const Color(0xFF888888),
   }) {
-    return _svg(
-      _rawCopy,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawCopy, size: size, color: color);
   }
 
   /// Check / Copied icon (24x24 viewBox).
@@ -165,11 +121,7 @@ class CmdkIcons {
     double size = 14.0,
     Color color = const Color(0xFF10B981),
   }) {
-    return _svg(
-      _rawCheck,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawCheck, size: size, color: color);
   }
 
   /// Search magnifying glass icon (24x24 viewBox).
@@ -177,11 +129,7 @@ class CmdkIcons {
     double size = 18.0,
     Color color = const Color(0xFF888888),
   }) {
-    return _svg(
-      _rawSearch,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawSearch, size: size, color: color);
   }
 
   /// Shift key arrow icon (12x12 viewBox).
@@ -189,11 +137,7 @@ class CmdkIcons {
     double size = 12.0,
     Color color = const Color(0xFF888888),
   }) {
-    return _svg(
-      _rawShift,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawShift, size: size, color: color);
   }
 
   /// Terminal prompt icon (24x24 viewBox).
@@ -201,11 +145,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFEDEDED),
   }) {
-    return _svg(
-      _rawTerminal,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawTerminal, size: size, color: color);
   }
 
   // ==================== RAYCAST CLONE ICONS ====================
@@ -215,11 +155,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFEDEDED),
   }) {
-    return _svg(
-      _rawWindow,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawWindow, size: size, color: color);
   }
 
   /// Raycast SubCommand Finder icon (16x16 viewBox).
@@ -227,11 +163,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFEDEDED),
   }) {
-    return _svg(
-      _rawFinder,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawFinder, size: size, color: color);
   }
 
   /// Raycast SubCommand Star icon (16x16 viewBox).
@@ -239,11 +171,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFEDEDED),
   }) {
-    return _svg(
-      _rawStar,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawStar, size: size, color: color);
   }
 
   /// Raw Clipboard outline icon (16x16 viewBox).
@@ -251,11 +179,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFFFFFFF),
   }) {
-    return _svg(
-      _rawClipboard,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawClipboard, size: size, color: color);
   }
 
   /// Raw Hammer outline icon (16x16 viewBox).
@@ -263,11 +187,7 @@ class CmdkIcons {
     double size = 16.0,
     Color color = const Color(0xFFFFFFFF),
   }) {
-    return _svg(
-      _rawHammer,
-      size: size,
-      color: color,
-    );
+    return _svg(_rawHammer, size: size, color: color);
   }
 
   /// Raycast Clipboard icon badge with red gradient.
@@ -468,18 +388,15 @@ class CmdkIcons {
 
   // ==================== SVG HELPER ====================
 
-  static Widget _svg(
-    String raw, {
-    required double size,
-    Color? color,
-  }) {
+  static Widget _svg(String raw, {required double size, Color? color}) {
     return SvgPicture.string(
       raw,
       width: size,
       height: size,
       fit: BoxFit.contain,
-      colorFilter:
-          color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+      colorFilter: color != null
+          ? ColorFilter.mode(color, BlendMode.srcIn)
+          : null,
     );
   }
 }
@@ -910,10 +827,16 @@ const String _rawFramerAvatar = '''
 const String _rawFramerContainer = '''
 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
-    d="M2 1.5C2 1.77614 1.77614 2 1.5 2C1.22386 2 1 1.77614 1 1.5C1 1.22386 1.22386 1 1.5 1C1.77614 1 2 1.22386 2 1.5ZM5 13H10V2L5 2L5 13ZM4 13C4 13.5523 4.44772 14 5 14H10C10.5523 14 11 13.5523 11 13V2C11 1.44772 10.5523 1 10 1H5C4.44772 1 4 1.44771 4 2V13ZM13.5 2C13.7761 2 14 1.77614 14 1.5C14 1.22386 13.7761 1 13.5 1C13.2239 1 13 1.22386 13 1.5C13 1.77614 13.2239 2 13.5 2ZM2 3.5C2 3.77614 1.77614 4 1.5 4C1.22386 4 1 3.77614 1 3.5C1 3.22386 1.22386 3 1.5 3C1.77614 3 2 3.22386 2 3.5ZM13.5 4C13.7761 4 14 3.77614 14 3.5C14 3.22386 13.7761 3 13.5 3C13.2239 3 13 3.22386 13 3.5C13 3.77614 13.2239 4 13.5 4ZM2 5.5C2 5.77614 1.77614 6 1.5 6C1.22386 6 1 5.77614 1 5.5C1 5.22386 1.22386 5 1.5 5C1.77614 5 2 5.22386 2 5.5ZM13.5 6C13.7761 6 14 5.77614 14 5.5C14 5.22386 13.7761 5 13.5 5C13.2239 5 13 5.22386 13 5.5C13 5.77614 13.2239 6 13.5 6ZM2 7.5C2 7.77614 1.77614 8 1.5 8C1.22386 8 1 7.77614 1 7.5C1 7.22386 1.22386 7 1.5 7C1.77614 7 2 7.22386 2 7.5ZM13.5 8C13.7761 8 14 7.77614 14 7.5C14 7.22386 13.7761 7 13.5 7C13.2239 7 13 7.22386 13 7.5ZM2 9.5C2 9.77614 1.77614 10 1.5 10C1.22386 10 1 9.77614 1 9.5C1 9.22386 1.22386 9 1.5 9C1.77614 9 2 9.22386 2 9.5ZM13.5 10C13.7761 10 14 9.77614 14 9.5C14 9.22386 13.7761 9 13.5 9C13.2239 9 13 9.22386 13 9.5C13 9.77614 13.2239 10 13.5 10ZM2 11.5C2 11.7761 1.77614 12 1.5 12C1.22386 12 1 11.7761 1 11.5C1 11.2239 1.22386 11 1.5 11C1.77614 11 2 11.2239 2 11.5ZM13.5 12C13.7761 12 14 11.7761 14 11.5C14 11.2239 13.7761 11 13.5 11C13.2239 11 13 11.2239 13 11.5C13 11.7761 13.2239 12 13.5 12ZM2 13.5C2 13.7761 1.77614 14 1.5 14C1.22386 14 1 13.7761 1 13.5C1 13.2239 1.22386 13 1.5 13C1.77614 13 2 13.2239 2 13.5ZM13.5 14C13.7761 14 14 13.7761 14 13.5C14 13.2239 13.7761 13 13.5 13C13.2239 13 13 13.2239 13 13.5C13 13.7761 13.2239 14 13.5 14Z"
+    d="M2 1.5C2 1.77614 1.77614 2 1.5 2C1.22386 2 1 1.77614 1 1.5C1 1.22386 1.22386 1 1.5 1C1.77614 1 2 1.22386 2 1.5ZM5 13H10V2L5 2L5 13ZM4 13C4 13.5523 4.44772 14 5 14H10C10.5523 14 11 13.5523 11 13V2C11 1.44772 10.5523 1 10 1H5C4.44772 1 4 1.44771 4 2V13ZM13.5 2C13.7761 2 14 1.77614 14 1.5C14 1.22386 13.7761 1 13.5 1C13.2239 1 13 1.22386 13 1.5C13 1.77614 13.2239 2 13.5 2ZM2 3.5C2 3.77614 1.77614 4 1.5 4C1.22386 4 1 3.77614 1 3.5C1 3.22386 1.22386 3 1.5 3C1.77614 3 2 3.22386 2 3.5ZM13.5 4C13.7761 4 14 3.77614 14 3.5C14 3.22386 13.7761 3 13.5 3C13.2239 3 13 3.22386 13 3.5C13 3.77614 13.2239 4 13.5 4ZM2 5.5C2 5.77614 1.77614 6 1.5 6C1.22386 6 1 5.77614 1 5.5C1 5.22386 1.22386 5 1.5 5C1.77614 5 2 5.22386 2 5.5ZM13.5 6C13.7761 6 14 5.77614 14 5.5C14 5.22386 13.7761 5 13.5 5C13.2239 5 13 5.22386 13 5.5C13 5.77614 13.2239 6 13.5 6ZM2 7.5C2 7.77614 1.77614 8 1.5 8C1.22386 8 1 7.77614 1 7.5C1 7.22386 1.22386 7 1.5 7C1.77614 7 2 7.22386 2 7.5ZM13.5 8C13.7761 8 14 7.77614 14 7.5C14 7.22386 13.7761 7 13.5 7C13.2239 7 13 7.22386 13 7.5ZM2 9.5C2 9.77614 1.77614 10 1.5 10C1.22386 10 1 9.77614 1 9.5C1 9.22386 1.22386 9 1.5 9C1.77614 9 2 9.22386 2 9.5ZM13.5 10C13.7761 10 14 9.77614 14 9.5C14 9.22386 13.7761 9 13.5 9C13.2239 9 13 9.22386 13 9.5C13 13 13 9.77614 13 9.5ZM2 11.5C2 11.7761 1.77614 12 1.5 12C1.22386 12 1 11.7761 1 11.5C1 11.2239 1.22386 11 1.5 11C1.77614 11 2 11.2239 2 11.5ZM13.5 12C13.7761 12 14 11.7761 14 11.5C14 11.2239 13.7761 11 13.5 11C13.2239 11 13 11.2239 13 11.5C13 11.7761 13.2239 12 13.5 12ZM2 13.5C2 13.7761 1.77614 14 1.5 14C1.22386 14 1 13.7761 1 13.5C1 13.2239 1.22386 13 1.5 13C1.77614 13 2 13.2239 2 13.5ZM13.5 14C13.7761 14 14 13.7761 14 13.5C14 13.2239 13.7761 13 13.5 13C13.2239 13 13 13.2239 13 13.5C13 13.7761 13.2239 14 13.5 14Z"
     fill="#FFFFFF"
     fill-rule="evenodd"
     clip-rule="evenodd"
   ></path>
+</svg>
+''';
+
+const String _rawLiquidGlass = '''
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="814" height="1000">
+  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>
 </svg>
 ''';

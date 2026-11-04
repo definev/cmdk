@@ -1,7 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
-import 'package:cmdk/cmdk.dart';
+import 'package:cmdk_ui/cmdk_ui.dart';
+
 import 'icons.dart';
 import 'styler_variants.dart';
 
@@ -49,13 +50,19 @@ class _VercelCMDKState extends State<VercelCMDK>
     );
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-          tween: Tween<double>(begin: 1.0, end: 0.96)
-              .chain(CurveTween(curve: Curves.easeIn)),
-          weight: 50),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.96,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 50,
+      ),
       TweenSequenceItem(
-          tween: Tween<double>(begin: 0.96, end: 1.0)
-              .chain(CurveTween(curve: Curves.easeOut)),
-          weight: 50),
+        tween: Tween<double>(
+          begin: 0.96,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
     ]).animate(_bounceController);
   }
 
@@ -78,7 +85,7 @@ class _VercelCMDKState extends State<VercelCMDK>
       _pages.add(page);
       _searchController.clear();
       if (page == 'Projects') {
-        _selectedValue = 'vercel/website';
+        _selectedValue = 'flutter/website';
       }
     });
   }
@@ -100,14 +107,18 @@ class _VercelCMDKState extends State<VercelCMDK>
       .padding(EdgeInsetsGeometryMix.all(8.0))
       .color(const Color(0xFF161616))
       .borderRadius(BorderRadiusGeometryMix.circular(12.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF333333), width: 1.0),
-      ))
-      .shadow(BoxShadowMix(
-        color: const Color(0x99000000),
-        blurRadius: 40.0,
-        offset: const Offset(0, 20),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF333333), width: 1.0),
+        ),
+      )
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x99000000),
+          blurRadius: 40.0,
+          offset: const Offset(0, 20),
+        ),
+      );
 
   // Breadcrumb badge stylers
   final breadcrumbBadgeStyle = BoxStyler()
@@ -125,19 +136,23 @@ class _VercelCMDKState extends State<VercelCMDK>
   // Search input wrapper styler
   final searchInputContainerStyle = BoxStyler()
       .padding(EdgeInsetsGeometryMix.fromLTRB(8.0, 4.0, 8.0, 16.0))
-      .border(BorderMix.bottom(
-        BorderSideMix(color: const Color(0xFF333333), width: 1.0),
-      ));
+      .border(
+        BorderMix.bottom(
+          BorderSideMix(color: const Color(0xFF333333), width: 1.0),
+        ),
+      );
 
   // Empty state stylers
   final emptyBoxStyle = BoxStyler().height(64.0).alignment(Alignment.center);
 
-  final emptyTextStyle =
-      TextStyler().fontSize(14.0).color(const Color(0xFF888888));
+  final emptyTextStyle = TextStyler()
+      .fontSize(14.0)
+      .color(const Color(0xFF888888));
 
   // Group heading stylers
-  final headingBoxStyle = BoxStyler()
-      .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0, vertical: 6.0));
+  final headingBoxStyle = BoxStyler().padding(
+    EdgeInsetsGeometryMix.symmetric(horizontal: 8.0, vertical: 6.0),
+  );
 
   final headingTextStyle = TextStyler()
       .fontSize(12.0)
@@ -152,8 +167,9 @@ class _VercelCMDKState extends State<VercelCMDK>
       .color(const Color(0x00000000))
       .onSelected(BoxStyler().color(const Color(0xFF222222)));
 
-  final itemRowStyle =
-      FlexBoxStyler().crossAxisAlignment(CrossAxisAlignment.center);
+  final itemRowStyle = FlexBoxStyler().crossAxisAlignment(
+    CrossAxisAlignment.center,
+  );
 
   final itemLabelStyle = TextStyler()
       .fontSize(14.0)
@@ -182,10 +198,8 @@ class _VercelCMDKState extends State<VercelCMDK>
 
     return AnimatedBuilder(
       animation: _scaleAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _scaleAnimation.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Transform.scale(scale: _scaleAnimation.value, child: child),
       child: Box(
         style: outerCardStyle,
         child: Command(
@@ -214,17 +228,17 @@ class _VercelCMDKState extends State<VercelCMDK>
             children: [
               // Top Breadcrumb Badges
               Padding(
-                padding:
-                    const EdgeInsets.only(left: 4.0, top: 4.0, bottom: 4.0),
+                padding: const EdgeInsets.only(
+                  left: 4.0,
+                  top: 4.0,
+                  bottom: 4.0,
+                ),
                 child: Row(
                   spacing: 6.0,
                   children: _pages.map((p) {
                     return Box(
                       style: breadcrumbBadgeStyle,
-                      child: StyledText(
-                        p,
-                        style: breadcrumbTextStyle,
-                      ),
+                      child: StyledText(p, style: breadcrumbTextStyle),
                     );
                   }).toList(),
                 ),
@@ -258,6 +272,12 @@ class _VercelCMDKState extends State<VercelCMDK>
                 child: CommandList(
                   shrinkWrap: true,
                   animateHeight: true,
+                  physics: const ClampingScrollPhysics(),
+                  scrollbarBuilder: rawCommandScrollbarBuilder(
+                    thumbColor: const Color(0x22FFFFFF),
+                    thickness: 4.0,
+                    radius: const Radius.circular(2.0),
+                  ),
                   padding: EdgeInsets.zero,
                   children: [
                     CommandEmpty(
@@ -357,33 +377,33 @@ class _VercelCMDKState extends State<VercelCMDK>
         spacing: 4.0,
         children: [
           _buildVercelItem(
-            value: 'vercel/website',
+            value: 'flutter/website',
             icon: CmdkIcons.projects(size: 18),
-            label: 'vercel/website',
+            label: 'flutter/website',
             shortcuts: [],
           ),
           _buildVercelItem(
-            value: 'vercel/next.js',
+            value: 'flutter/flutter',
             icon: CmdkIcons.projects(size: 18),
-            label: 'vercel/next.js',
+            label: 'flutter/flutter',
             shortcuts: [],
           ),
           _buildVercelItem(
-            value: 'pacocoursey/cmdk',
+            value: 'definev/zenrouter',
             icon: CmdkIcons.projects(size: 18),
-            label: 'pacocoursey/cmdk',
+            label: 'definev/zenrouter',
             shortcuts: [],
           ),
           _buildVercelItem(
-            value: 'vercel/hyper',
+            value: 'definev/zentoast',
             icon: CmdkIcons.projects(size: 18),
-            label: 'vercel/hyper',
+            label: 'definev/zentoast',
             shortcuts: [],
           ),
           _buildVercelItem(
-            value: 'vercel/swr',
+            value: 'definev/cmdk',
             icon: CmdkIcons.projects(size: 18),
-            label: 'vercel/swr',
+            label: 'definev/cmdk',
             shortcuts: [],
           ),
         ],
@@ -394,10 +414,7 @@ class _VercelCMDKState extends State<VercelCMDK>
   Widget _buildGroupHeading(String text) {
     return Box(
       style: headingBoxStyle,
-      child: StyledText(
-        text,
-        style: headingTextStyle,
-      ),
+      child: StyledText(text, style: headingTextStyle),
     );
   }
 
@@ -427,34 +444,30 @@ class _VercelCMDKState extends State<VercelCMDK>
                     child: Center(child: icon),
                   ),
                   const SizedBox(width: 12.0),
-                  StyledText(
-                    label,
-                    style: itemLabelStyle,
-                  ),
+                  StyledText(label, style: itemLabelStyle),
                   const Spacer(),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 6.0,
-                  children: shortcuts.map((key) {
-                    return Box(
-                      style: shortcutKeycapStyle,
-                      child: key == '⇧'
-                          ? CmdkIcons.shift(
-                              size: 11.0, color: const Color(0xFFA0A0A0))
-                          : StyledText(
-                              key,
-                              style: shortcutTextStyle,
-                            ),
-                    );
-                  }).toList(),
-                ),
-              ],
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    spacing: 6.0,
+                    children: shortcuts.map((key) {
+                      return Box(
+                        style: shortcutKeycapStyle,
+                        child: key == '⇧'
+                            ? CmdkIcons.shift(
+                                size: 11.0,
+                                color: const Color(0xFFA0A0A0),
+                              )
+                            : StyledText(key, style: shortcutTextStyle),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
   }
 }

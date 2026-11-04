@@ -4,8 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:example/clones/icons.dart';
 
 void main() {
-  testWidgets('All CmdkIcons render exact SVG vectors cleanly',
-      (tester) async {
+  testWidgets('All CmdkIcons render exact SVG vectors cleanly', (tester) async {
     final icons = <Widget>[
       CmdkIcons.raycast(),
       CmdkIcons.raycastDark(),
@@ -13,6 +12,7 @@ void main() {
       CmdkIcons.linear(),
       CmdkIcons.vercel(),
       CmdkIcons.framer(),
+      CmdkIcons.liquidGlass(),
       CmdkIcons.figma(),
       CmdkIcons.slack(),
       CmdkIcons.youtube(),
@@ -58,9 +58,7 @@ void main() {
         textDirection: TextDirection.ltr,
         child: SingleChildScrollView(
           child: Column(
-            children: icons
-                .map((icon) => CmdkLogo(child: icon))
-                .toList(),
+            children: icons.map((icon) => CmdkLogo(child: icon)).toList(),
           ),
         ),
       ),

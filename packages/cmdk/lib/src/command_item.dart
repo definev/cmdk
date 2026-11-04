@@ -186,7 +186,8 @@ class _CommandItemState extends State<CommandItem> {
               }
             }
             if (firstInGroup?.id == _entryId) {
-              final groupContext = groupScope.groupKey?.currentContext ??
+              final groupContext =
+                  groupScope.groupKey?.currentContext ??
                   groupScope.headerKey?.currentContext;
               final box = groupContext?.findRenderObject();
               if (box is RenderBox && box.attached) {
@@ -196,20 +197,23 @@ class _CommandItemState extends State<CommandItem> {
           }
 
           final listScope = CommandListScope.maybeOf(context);
-          final listPadding = listScope?.padding?.resolve(
+          final listPadding =
+              listScope?.padding?.resolve(
                 Directionality.maybeOf(context) ?? TextDirection.ltr,
               ) ??
               EdgeInsets.zero;
 
-          final itemRevealStart =
-              viewport.getOffsetToReveal(renderObject, 0.0).offset;
-          final revealStart = (groupBox != null
+          final itemRevealStart = viewport
+              .getOffsetToReveal(renderObject, 0.0)
+              .offset;
+          final revealStart =
+              (groupBox != null
                   ? viewport.getOffsetToReveal(groupBox, 0.0).offset
                   : itemRevealStart) -
               listPadding.top;
           final revealEnd =
               viewport.getOffsetToReveal(renderObject, 1.0).offset +
-                  listPadding.bottom;
+              listPadding.bottom;
 
           if (revealStart < revealEnd) {
             // Region is taller than viewport: align leading edge (show header/top)

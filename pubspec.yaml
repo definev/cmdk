@@ -1,22 +1,15 @@
-name: cmdk
-description: A fast, unstyled, composable command menu for Flutter.
-version: 0.1.0
-homepage: https://github.com/definev/cmdk
+name: cmdk_workspace
+description: Dart workspace monorepo for cmdk packages.
+publish_to: none
 
 environment:
   sdk: ^3.8.0
   flutter: ">=3.24.0"
 
-dependencies:
-  flutter:
-    sdk: flutter
-  
-  material_ui: ^1.9.0
-  cupertino_ui: ^1.1.5
+workspace:
+  - packages/cmdk
+  - packages/cmdk_ui
+  - example
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^5.0.0
-
-flutter:

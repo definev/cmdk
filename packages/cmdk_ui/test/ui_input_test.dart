@@ -1,6 +1,6 @@
 import 'package:cmdk/cmdk.dart';
-import 'package:cmdk/cupertino.dart';
-import 'package:cmdk/material.dart';
+import 'package:cmdk_ui/cupertino.dart';
+import 'package:cmdk_ui/material.dart';
 // Exercise the SDK adapters across the package's supported Flutter range.
 import 'package:cupertino_ui/cupertino_ui.dart' as cupertino;
 import 'package:flutter/gestures.dart';
@@ -31,7 +31,9 @@ Widget _app(_Editor editor, Widget child) {
   );
   return switch (editor) {
     _Editor.material => material.MaterialApp(
-      theme: material.ThemeData.dark(),
+      theme: material.ThemeData.dark().copyWith(
+        splashFactory: material.NoSplash.splashFactory,
+      ),
       home: material.Scaffold(body: content),
     ),
     _Editor.cupertino => cupertino.CupertinoApp(

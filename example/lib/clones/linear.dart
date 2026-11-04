@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
-import 'package:cmdk/cmdk.dart';
+import 'package:cmdk_ui/cmdk_ui.dart';
+
 import 'icons.dart';
 import 'styler_variants.dart';
 
@@ -18,19 +19,25 @@ class _LinearCMDKState extends State<LinearCMDK> {
   final outerCardStyle = BoxStyler()
       .maxWidth(640.0)
       .borderRadius(BorderRadiusGeometryMix.circular(8.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF38393D), width: 1.0),
-      ))
-      .gradient(LinearGradientMix(
-        begin: const Alignment(-0.8, -0.6),
-        end: const Alignment(0.8, 0.6),
-        colors: const [Color(0xFF27282B), Color(0xFF2D2E31)],
-      ))
-      .shadow(BoxShadowMix(
-        color: const Color(0x66000000),
-        blurRadius: 40.0,
-        offset: const Offset(0, 20),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF38393D), width: 1.0),
+        ),
+      )
+      .gradient(
+        LinearGradientMix(
+          begin: const Alignment(-0.8, -0.6),
+          end: const Alignment(0.8, 0.6),
+          colors: const [Color(0xFF27282B), Color(0xFF2D2E31)],
+        ),
+      )
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x66000000),
+          blurRadius: 40.0,
+          offset: const Offset(0, 20),
+        ),
+      );
 
   // Badge stylers
   final badgeBoxStyle = BoxStyler()
@@ -48,15 +55,18 @@ class _LinearCMDKState extends State<LinearCMDK> {
   // Input wrapper styler
   final inputContainerStyle = BoxStyler()
       .padding(EdgeInsetsGeometryMix.all(20.0))
-      .border(BorderMix.bottom(
-        BorderSideMix(color: const Color(0xFF343434), width: 1.0),
-      ));
+      .border(
+        BorderMix.bottom(
+          BorderSideMix(color: const Color(0xFF343434), width: 1.0),
+        ),
+      );
 
   // Empty state stylers
   final emptyBoxStyle = BoxStyler().height(64.0).alignment(Alignment.center);
 
-  final emptyTextStyle =
-      TextStyler().fontSize(14.0).color(const Color(0xFFA0A0A0));
+  final emptyTextStyle = TextStyler()
+      .fontSize(14.0)
+      .color(const Color(0xFFA0A0A0));
 
   // Item stylers
   final itemBoxStyle = BoxStyler()
@@ -64,8 +74,9 @@ class _LinearCMDKState extends State<LinearCMDK> {
       .color(const Color(0x00000000))
       .onSelected(BoxStyler().color(const Color(0xFF232323)));
 
-  final accentIndicatorStyle =
-      BoxStyler().width(3.0).color(const Color(0xFF5F6AD2));
+  final accentIndicatorStyle = BoxStyler()
+      .width(3.0)
+      .color(const Color(0xFF5F6AD2));
 
   final itemContentRowStyle = FlexBoxStyler()
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 16.0))
@@ -137,8 +148,11 @@ class _LinearCMDKState extends State<LinearCMDK> {
             children: [
               // Top Badge: "Issue - FUN-343"
               Padding(
-                padding:
-                    const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  top: 16.0,
+                  right: 16.0,
+                ),
                 child: Row(
                   children: [
                     Box(
@@ -178,6 +192,12 @@ class _LinearCMDKState extends State<LinearCMDK> {
                   shrinkWrap: true,
                   animateHeight: true,
                   spacing: 4.0,
+                  physics: const ClampingScrollPhysics(),
+                  scrollbarBuilder: rawCommandScrollbarBuilder(
+                    thumbColor: const Color(0x33FFFFFF),
+                    thickness: 4.0,
+                    radius: const Radius.circular(2.0),
+                  ),
                   padding: EdgeInsets.zero,
                   children: [
                     CommandEmpty(
@@ -204,8 +224,9 @@ class _LinearCMDKState extends State<LinearCMDK> {
     return CommandItem(
       value: item.label,
       builder: (context, state) {
-        final iconColor =
-            state.isSelected ? const Color(0xFFEDEDED) : const Color(0xFFA0A0A0);
+        final iconColor = state.isSelected
+            ? const Color(0xFFEDEDED)
+            : const Color(0xFFA0A0A0);
 
         return CommandItemStateProvider(
           state: state,
@@ -236,10 +257,7 @@ class _LinearCMDKState extends State<LinearCMDK> {
                           child: Center(child: item.icon(iconColor)),
                         ),
                         const SizedBox(width: 12.0),
-                        StyledText(
-                          item.label,
-                          style: itemLabelStyle,
-                        ),
+                        StyledText(item.label, style: itemLabelStyle),
                         const Spacer(),
                         // Right shortcuts
                         Row(
@@ -249,11 +267,10 @@ class _LinearCMDKState extends State<LinearCMDK> {
                           children: item.shortcut.map((key) {
                             return key == '⇧'
                                 ? CmdkIcons.shift(
-                                    size: 13.0, color: const Color(0xFFA0A0A0))
-                                : StyledText(
-                                    key,
-                                    style: shortcutTextStyle,
-                                  );
+                                    size: 13.0,
+                                    color: const Color(0xFFA0A0A0),
+                                  )
+                                : StyledText(key, style: shortcutTextStyle);
                           }).toList(),
                         ),
                       ],

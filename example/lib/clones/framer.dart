@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:mix/mix.dart';
-import 'package:cmdk/cmdk.dart';
+import 'package:cmdk_ui/cmdk_ui.dart';
+
 import 'icons.dart';
 import 'styler_variants.dart';
 
@@ -20,22 +21,28 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .padding(EdgeInsetsGeometryMix.all(8.0))
       .color(const Color(0xFF161618))
       .borderRadius(BorderRadiusGeometryMix.circular(16.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF2C2C30), width: 1.0),
-      ))
-      .shadow(BoxShadowMix(
-        color: const Color(0x7F000000),
-        blurRadius: 40.0,
-        offset: const Offset(0, 20),
-      ));
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF2C2C30), width: 1.0),
+        ),
+      )
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x7F000000),
+          blurRadius: 40.0,
+          offset: const Offset(0, 20),
+        ),
+      );
 
   // Header styler
   final headerBoxStyle = BoxStyler()
       .height(48.0)
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0))
-      .border(BorderMix.bottom(
-        BorderSideMix(color: const Color(0xFF28282C), width: 1.0),
-      ));
+      .border(
+        BorderMix.bottom(
+          BorderSideMix(color: const Color(0xFF28282C), width: 1.0),
+        ),
+      );
 
   // Separator styler
   final separatorStyle = BoxStyler().width(1.0).color(const Color(0xFF2C2C30));
@@ -45,12 +52,14 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .padding(EdgeInsetsGeometryMix.all(24.0))
       .alignment(Alignment.center);
 
-  final emptyTextStyle =
-      TextStyler().fontSize(13.0).color(const Color(0xFF707075));
+  final emptyTextStyle = TextStyler()
+      .fontSize(13.0)
+      .color(const Color(0xFF707075));
 
   // Group heading stylers
-  final headingBoxStyle = BoxStyler()
-      .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 8.0, vertical: 6.0));
+  final headingBoxStyle = BoxStyler().padding(
+    EdgeInsetsGeometryMix.symmetric(horizontal: 8.0, vertical: 6.0),
+  );
 
   final headingTextStyle = TextStyler()
       .fontSize(12.0)
@@ -64,8 +73,9 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .color(const Color(0x00000000))
       .onSelected(BoxStyler().color(const Color(0xFF0091FF)));
 
-  final itemRowStyle =
-      FlexBoxStyler().crossAxisAlignment(CrossAxisAlignment.center);
+  final itemRowStyle = FlexBoxStyler().crossAxisAlignment(
+    CrossAxisAlignment.center,
+  );
 
   final iconWrapperStyle = BoxStyler()
       .size(32.0, 32.0)
@@ -92,11 +102,13 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .size(120.0, 40.0)
       .color(const Color(0xFF0091FF))
       .borderRadius(BorderRadiusGeometryMix.circular(6.0))
-      .shadow(BoxShadowMix(
-        color: const Color(0x330091FF),
-        blurRadius: 12.0,
-        offset: const Offset(0, 4),
-      ))
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x330091FF),
+          blurRadius: 12.0,
+          offset: const Offset(0, 4),
+        ),
+      )
       .alignment(Alignment.center);
 
   final previewButtonTextStyle = TextStyler()
@@ -108,19 +120,24 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .size(160.0, 40.0)
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 12.0))
       .borderRadius(BorderRadiusGeometryMix.circular(6.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF333338), width: 1.0),
-      ))
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF333338), width: 1.0),
+        ),
+      )
       .color(const Color(0xFF1E1E22))
-      .shadow(BoxShadowMix(
-        color: const Color(0x1A000000),
-        blurRadius: 6.0,
-        offset: const Offset(0, 2),
-      ))
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x1A000000),
+          blurRadius: 6.0,
+          offset: const Offset(0, 2),
+        ),
+      )
       .alignment(Alignment.centerLeft);
 
-  final previewInputTextStyle =
-      TextStyler().fontSize(14.0).color(const Color(0xFF707075));
+  final previewInputTextStyle = TextStyler()
+      .fontSize(14.0)
+      .color(const Color(0xFF707075));
 
   final previewBadgeStyle = BoxStyler()
       .padding(EdgeInsetsGeometryMix.symmetric(horizontal: 12.0, vertical: 6.0))
@@ -136,18 +153,22 @@ class _FramerCMDKState extends State<FramerCMDK> {
       .size(100.0, 100.0)
       .color(const Color(0xFF0091FF))
       .borderRadius(BorderRadiusGeometryMix.circular(16.0))
-      .shadow(BoxShadowMix(
-        color: const Color(0x400091FF),
-        blurRadius: 20.0,
-        offset: const Offset(0, 8),
-      ));
+      .shadow(
+        BoxShadowMix(
+          color: const Color(0x400091FF),
+          blurRadius: 20.0,
+          offset: const Offset(0, 8),
+        ),
+      );
 
   final previewAvatarStyle = BoxStyler()
       .size(44.0, 44.0)
       .borderRadius(BorderRadiusGeometryMix.circular(22.0))
-      .border(BorderMix.all(
-        BorderSideMix(color: const Color(0xFF38383E), width: 1.5),
-      ))
+      .border(
+        BorderMix.all(
+          BorderSideMix(color: const Color(0xFF38383E), width: 1.5),
+        ),
+      )
       .color(const Color(0xFF26262A))
       .alignment(Alignment.center);
 
@@ -239,6 +260,12 @@ class _FramerCMDKState extends State<FramerCMDK> {
                   Expanded(
                     flex: 4,
                     child: CommandList(
+                      physics: const ClampingScrollPhysics(),
+                      scrollbarBuilder: rawCommandScrollbarBuilder(
+                        thumbColor: const Color(0x2AFFFFFF),
+                        thickness: 4.0,
+                        radius: const Radius.circular(2.0),
+                      ),
                       padding: const EdgeInsets.only(right: 8.0),
                       children: [
                         CommandEmpty(
@@ -291,10 +318,7 @@ class _FramerCMDKState extends State<FramerCMDK> {
   Widget _buildGroupHeading(String text) {
     return Box(
       style: headingBoxStyle,
-      child: StyledText(
-        text,
-        style: headingTextStyle,
-      ),
+      child: StyledText(text, style: headingTextStyle),
     );
   }
 
@@ -312,10 +336,7 @@ class _FramerCMDKState extends State<FramerCMDK> {
                 style: itemRowStyle,
                 children: [
                   // Orange square icon wrapper
-                  Box(
-                    style: iconWrapperStyle,
-                    child: item.icon,
-                  ),
+                  Box(style: iconWrapperStyle, child: item.icon),
                   const SizedBox(width: 12.0),
                   // Meta column
                   Expanded(
@@ -323,15 +344,9 @@ class _FramerCMDKState extends State<FramerCMDK> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        StyledText(
-                          item.value,
-                          style: itemTitleStyle,
-                        ),
+                        StyledText(item.value, style: itemTitleStyle),
                         const SizedBox(height: 2.0),
-                        StyledText(
-                          item.subtitle,
-                          style: itemSubtitleStyle,
-                        ),
+                        StyledText(item.subtitle, style: itemSubtitleStyle),
                       ],
                     ),
                   ),
@@ -349,19 +364,13 @@ class _FramerCMDKState extends State<FramerCMDK> {
       case 'Button':
         return Box(
           style: previewButtonStyle,
-          child: StyledText(
-            'Primary',
-            style: previewButtonTextStyle,
-          ),
+          child: StyledText('Primary', style: previewButtonTextStyle),
         );
 
       case 'Input':
         return Box(
           style: previewInputStyle,
-          child: StyledText(
-            'Placeholder',
-            style: previewInputTextStyle,
-          ),
+          child: StyledText('Placeholder', style: previewInputTextStyle),
         );
 
       case 'Radio':
@@ -372,9 +381,11 @@ class _FramerCMDKState extends State<FramerCMDK> {
               style: BoxStyler()
                   .size(20.0, 20.0)
                   .borderRadius(BorderRadiusGeometryMix.circular(10.0))
-                  .border(BorderMix.all(
-                    BorderSideMix(color: const Color(0xFF0091FF), width: 2.0),
-                  ))
+                  .border(
+                    BorderMix.all(
+                      BorderSideMix(color: const Color(0xFF0091FF), width: 2.0),
+                    ),
+                  )
                   .alignment(Alignment.center),
               child: Box(
                 style: BoxStyler()
@@ -397,10 +408,7 @@ class _FramerCMDKState extends State<FramerCMDK> {
       case 'Badge':
         return Box(
           style: previewBadgeStyle,
-          child: StyledText(
-            'Badge',
-            style: previewBadgeTextStyle,
-          ),
+          child: StyledText('Badge', style: previewBadgeTextStyle),
         );
 
       case 'Slider':
@@ -426,11 +434,13 @@ class _FramerCMDKState extends State<FramerCMDK> {
                   .size(20.0, 20.0)
                   .borderRadius(BorderRadiusGeometryMix.circular(10.0))
                   .color(const Color(0xFFFFFFFF))
-                  .shadow(BoxShadowMix(
-                    color: const Color(0x40000000),
-                    blurRadius: 4.0,
-                    offset: const Offset(0, 1),
-                  )),
+                  .shadow(
+                    BoxShadowMix(
+                      color: const Color(0x40000000),
+                      blurRadius: 4.0,
+                      offset: const Offset(0, 1),
+                    ),
+                  ),
             ),
           ),
         );
@@ -438,8 +448,10 @@ class _FramerCMDKState extends State<FramerCMDK> {
       case 'Avatar':
         return Box(
           style: previewAvatarStyle,
-          child:
-              CmdkIcons.framerAvatar(size: 24, color: const Color(0xFFEDEDED)),
+          child: CmdkIcons.framerAvatar(
+            size: 24,
+            color: const Color(0xFFEDEDED),
+          ),
         );
 
       case 'Container':

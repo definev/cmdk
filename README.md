@@ -9,7 +9,7 @@
 ## Features
 
 - **Fast**: High-performance fuzzy scoring engine ported directly from `command-score`, ranking thousands of items in single-digit milliseconds.
-- **Unstyled**: The core `cmdk.dart` uses only Flutter widgets/services. Optional Material and Cupertino editor adapters provide full text-editing gestures and menus without adding field decoration.
+- **Unstyled**: The core `cmdk` package uses only Flutter widgets/services with zero design system dependencies. Companion package `cmdk_ui` provides Material, Cupertino, Mobile Bottom Sheet, and Scrollbar adapters.
 - **Composable**: Compound widget architecture mirroring cmdk (`Command`, `CommandInput`, `CommandList`, `CommandGroup`, `CommandItem`, `CommandSeparator`, `CommandEmpty`, `CommandLoading`, `CommandDialog`).
 - **Keyboard & Vim Navigation**:
   - `ArrowDown` / `ArrowUp`: Item navigation (with optional `loop` wrap-around).
@@ -366,7 +366,7 @@ query edits. Prefix/suffix controls share the editor's `TextFieldTapRegion`, so 
 clear button can call an external text controller's `clear()` without being
 treated as an outside click.
 
-Custom editors, including standalone `material_ui` / `cupertino_ui` fields, can
+Custom editors, including adapters in `cmdk_ui`, can
 use the public `CommandInputEditor` binding. Wire its controller, focus node,
 `onEditingComplete` and `onSubmitted` callbacks; retain its keyboard settings.
 Do not dispose the supplied controller/focus node. See
