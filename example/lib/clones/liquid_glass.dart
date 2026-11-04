@@ -38,8 +38,8 @@ class _CloseLiquidGlassActionsAction
 }
 
 const _primary = Color(0xFFF4F4F4);
-const _secondary = Color(0xFFA4A4A4);
-const _muted = Color(0xFF737373);
+const _secondary = Color(0xFFBDBDBD);
+const _muted = Color(0xFFA3A3A3);
 const _separator = Color(0x18FFFFFF);
 
 class _LauncherEntry {
@@ -167,18 +167,44 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     );
   }
 
-  static final _panelSettings = LiquidGlassSettings.ios27RegularDark(
-    tintAmount: 0.15,
+  // A broad, curved rim and subtle dispersion give the panel a liquid lens.
+  // Keep the face lightly frosted so backdrop detail does not compete with text.
+  static const _panelSettings = LiquidGlassSettings(
+    frost: 6,
+    refractionHeight: 24,
+    refractionAmount: 72,
+    backdropShrink: 0.015,
+    dispersion: -0.06,
+    highlight: 0.65,
+    contourStrength: 0.32,
+    contourDirectionality: 0.9,
+    bevelShadowStrength: 0.025,
   );
-  static final _controlSettings = LiquidGlassSettings.ios27RegularDark(
-    tintAmount: 0.35,
+  // Denser controls separate labels from the list beneath the footer/popover.
+  // A narrow bevel keeps their lens visible without distorting the whole pill.
+  static const _controlSettings = LiquidGlassSettings(
+    refractionHeight: 12,
+    refractionAmount: 40,
+    refractionFitsShape: false,
+    frost: 12,
+    dispersion: -0.045,
+    highlight: 0.72,
+    contourStrength: 0.42,
+    contourDirectionality: 0.9,
+    bevelShadowStrength: 0.035,
   );
-  static const _panelAppearance = LiquidGlassAppearance.ios27Clear(
-    tint: Color(0x99141413),
+  // Keep the panel near #161517 and lift controls to a lighter neutral gray.
+  // Desaturate the backdrop so neither surface picks up the showcase colors.
+  static const _panelAppearance = LiquidGlassAppearance(
+    tint: Color(0x80161517),
+    colorModel: LiquidGlassColorModel.direct(saturation: 0),
   );
-  static const _controlAppearance = LiquidGlassAppearance.ios27RegularDark();
-  static const _shadows = [
-    BoxShadow(color: Color(0x50000000), blurRadius: 24, offset: Offset(0, 10)),
+  static const _controlAppearance = LiquidGlassAppearance(
+    tint: Color(0xE62A292B),
+    colorModel: LiquidGlassColorModel.direct(saturation: 0),
+  );
+  static const _shadows = <BoxShadow>[
+    // BoxShadow(color: Color(0x50000000), blurRadius: 24, offset: Offset(0, 10)),
   ];
 
   final _rowStyle = BoxStyler()
@@ -359,28 +385,16 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
         child: child,
       );
     }
-    // When running on a platform without Flutter GPU (e.g. Web / non-Impeller),
-    // use a flat solid surface without an outer border so inner FakeGlass pills
-    // stand out cleanly without nesting issues.
-    if (panel && !isFlutterGpuSupported) {
-      return Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: const Color(0xFF202020),
-          borderRadius: BorderRadius.circular(radius),
-        ),
-        child: child,
-      );
-    }
     final shape = LiquidRoundedSuperellipse(borderRadius: radius);
     final settings = panel ? _panelSettings : _controlSettings;
     final appearance = panel ? _panelAppearance : _controlAppearance;
     if (!isFlutterGpuSupported) {
-      return FakeGlass(
+      return _fallbackGlass(
         settings: settings,
         appearance: appearance,
         shape: shape,
         shadows: _shadows,
+        panel: panel,
         child: child,
       );
     }
@@ -391,6 +405,49 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
       shadows: _shadows,
       clipBehavior: Clip.antiAlias,
       child: child,
+    );
+  }
+
+  Widget _fallbackGlass({
+    required LiquidGlassSettings settings,
+    required LiquidGlassAppearance appearance,
+    required LiquidShape shape,
+    required List<BoxShadow> shadows,
+    required Widget child,
+    bool panel = false,
+  }) {
+    final tint = appearance.tint;
+    // FakeGlass supplies the blurred, desaturated backdrop. Paint the face
+    // separately so its density stays predictable without simulated rim light.
+    return FakeGlass(
+      settings: settings.copyWith(
+        highlight: 0,
+        contourStrength: 0,
+        bevelShadowStrength: 0,
+      ),
+      appearance: appearance.copyWith(tint: const Color(0x00000000)),
+      shape: shape,
+      shadows: shadows,
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          shape: shape,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: panel
+                ? [tint.withValues(alpha: 0.72), tint.withValues(alpha: 0.84)]
+                : [
+                    Color.lerp(
+                      tint,
+                      const Color(0xFFFFFFFF),
+                      0.075,
+                    )!.withValues(alpha: 0.96),
+                    tint.withValues(alpha: 0.96),
+                  ],
+          ),
+        ),
+        child: child,
+      ),
     );
   }
 
@@ -756,8 +813,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
           ),
         ];
     if (!isFlutterGpuSupported) {
-      // Standalone FakeGlass pill works cleanly when the outer container is solid.
-      return FakeGlass(
+      return _fallbackGlass(
         settings: _controlSettings,
         appearance: _controlAppearance,
         shape: shape,
