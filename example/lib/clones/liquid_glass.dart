@@ -742,9 +742,15 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
     final shape = round
         ? const LiquidOval()
         : LiquidRoundedSuperellipse(borderRadius: radius);
-    final effectiveShadows = shadows ?? const [
-      BoxShadow(color: Color(0x28000000), blurRadius: 8, offset: Offset(0, 2)),
-    ];
+    final effectiveShadows =
+        shadows ??
+        const [
+          BoxShadow(
+            color: Color(0x28000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ];
     if (!isFlutterGpuSupported) {
       // Standalone FakeGlass pill works cleanly when the outer container is solid.
       return FakeGlass(
@@ -775,10 +781,7 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
                 _selectedEntry?.application == true
                     ? 'Open Application'
                     : 'Open Command',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: _primary,
-                ),
+                style: const TextStyle(fontSize: 12, color: _primary),
               ),
               const SizedBox(width: 8),
               _keyHint('↵'),
@@ -852,17 +855,21 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
         final availableWidth = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : (width - 16);
-        final targetWidth = (availableWidth - (highContrast ? 2.0 : 0.0))
-            .clamp(200.0, 350.0);
+        final targetWidth = (availableWidth - (highContrast ? 2.0 : 0.0)).clamp(
+          200.0,
+          350.0,
+        );
         final fallbackCollapsed = width >= 440 ? 255.0 : 116.0;
-        final collapsedWidth =
-            _measuredPillWidth > 0 ? _measuredPillWidth : fallbackCollapsed;
+        final collapsedWidth = _measuredPillWidth > 0
+            ? _measuredPillWidth
+            : fallbackCollapsed;
 
         return AnimatedBuilder(
           animation: _actionsAnimation,
           builder: (context, _) {
             final progress = _actionsAnimation.value;
-            final isOpen = _isActionsMenuOpen || !_actionsController.isDismissed;
+            final isOpen =
+                _isActionsMenuOpen || !_actionsController.isDismissed;
 
             final currentWidth = !isOpen
                 ? null
@@ -1051,12 +1058,11 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
                   height: 0.5,
                   padding: EdgeInsets.symmetric(vertical: 4),
                 ),
-                _action(
-                  'Copy Deeplink',
-                  Icons.content_paste_outlined,
-                  const ['⇧', '⌘', 'C'],
-                  () => _copy(entry?.deeplink ?? ''),
-                ),
+                _action('Copy Deeplink', Icons.content_paste_outlined, const [
+                  '⇧',
+                  '⌘',
+                  'C',
+                ], () => _copy(entry?.deeplink ?? '')),
                 const CommandSeparator(
                   color: _separator,
                   height: 0.5,
@@ -1074,20 +1080,12 @@ class _LiquidGlassCMDKState extends State<LiquidGlassCMDK>
           CommandInput(
             focusNode: _actionsInputFocusNode,
             placeholder: 'Search for actions…',
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
-              border: Border(
-                top: BorderSide(color: _separator, width: 0.5),
-              ),
+              border: Border(top: BorderSide(color: _separator, width: 0.5)),
             ),
             style: const TextStyle(fontSize: 14, color: _primary),
-            placeholderStyle: const TextStyle(
-              fontSize: 14,
-              color: _muted,
-            ),
+            placeholderStyle: const TextStyle(fontSize: 14, color: _muted),
             cursorColor: _primary,
             keyboardAppearance: Brightness.dark,
           ),
